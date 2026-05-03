@@ -1,0 +1,1974 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String                         @id @default(uuid())
+  email                  String?                        @unique
+  phone                  String?                        @unique
+  passwordHash           String?
+  emailVerified          Boolean                        @default(false)
+  role                   Role                           @default(USER)
+  deviceId               String?                        @unique
+  createdAt              DateTime                       @default(now())
+  updatedAt              DateTime                       @updatedAt
+  refreshToken           String?
+  adaptiveSessions       AdaptiveSession[]
+  aiInsights             AiInsight[]
+  appointments           Appointment[]                  @relation("PatientAppointments")
+  patientReviews         TherapistReview[]              @relation("PatientReviews")
+  patientQuestions       TherapistQuestion[]            @relation("PatientQuestions")
+  waitlistEntries        WaitlistEntry[]                @relation("PatientWaitlist")
+  messageThreads         TherapistMessageThread[]       @relation("UserMessageThreads")
+  scores                 AssessmentScore[]
+  auditLogs              AuditLog[]
+  posts                  CommunityPost[]
+  crisisEvents           CrisisEvent[]
+  crisisScore            CrisisScore?
+  dailySummaries         DailySummary[]
+  deviceTokens           DeviceToken[]
+  moodLogs               MoodLog[]
+  moodStreak             MoodStreak?
+  multiDimensionalScores MultiDimensionalScore[]
+  notifications          Notification[]
+  notificationPref       NotificationPreference?
+  personalizedBaseline   PersonalizedBaseline?
+  profile                Profile?
+  reminderSchedules      ReminderSchedule[]
+  subscription           Subscription?
+  therapistData          TherapistProfile?
+  trustedContacts        TrustedContact[]
+  crisisPlan             CrisisPlan?
+  weeklyReports          WeeklyReport[]
+  gratitudeEntries       GratitudeEntry[]
+  gratitudeMemories      GratitudeMemory[]
+  gratitudeStreak        GratitudeStreak?
+  journalEntries         JournalEntry[]
+  journalStreak          JournalStreak?
+  groundingSessions      GroundingSession[]
+  groundingStreak        GroundingStreak?
+  groundingFavorites     GroundingFavoriteEnvironment[]
+  groundingAnalytics     GroundingAnalytics?
+
+  // Meditation
+  meditationSessions  MeditationSession[]
+  meditationStreak    MeditationStreak?
+  meditationAnalytics MeditationAnalytics?
+  meditationFavorites MeditationFavorite[]
+  meditationDownloads MeditationDownload[]
+
+  // Audio
+  audioHistory   UserAudioHistory[]
+  audioDownloads DownloadedAudioTrack[]
+
+  // Focus
+  focusSessions FocusSession[]
+  focusStats    FocusStats?
+
+  // Community Rooms
+  communityRoomsJoined RoomParticipant[]
+  communityAliases     AnonymousAlias[]
+  roomReminders        RoomReminder[]
+
+  // Community Feed
+  postReactions PostReaction[]
+  postComments  PostComment[]
+  postReports   PostReport[]
+  postBookmarks PostBookmark[]
+
+  // Groups
+  groupsJoined       GroupMember[]
+  groupPosts         GroupPost[]
+  groupPostReactions GroupPostReaction[]
+  groupPostComments  GroupPostComment[]
+  groupChatMessages  GroupChatMessage[]
+  groupCheckIns      GroupCheckIn[]
+  groupReflections   GroupReflection[]
+  groupExitFeedbacks GroupExitFeedback[]
+
+  // Recovery
+  recoveryLogs          RecoveryLog[]
+  recoveryScore         RecoveryScore?
+  recoveryPreferences   RecoveryPreference[]
+  recoveryEffectiveness RecoveryEffectiveness[]
+
+  // Habits
+  habits              Habit[]
+  habitLogs           HabitLog[]
+  habitStreaks        HabitStreak[]
+  habitInsights       HabitInsight[]
+  habitPreferences    HabitPreference[]
+  habitRecoveryStates HabitRecoveryState[]
+
+  // Challenges
+  userChallenges      UserChallenge[]
+  aiUsage             AiUsage[]
+}
+
+model AiUsage {
+  id        String   @id @default(uuid())
+  userId    String
+  count     Int      @default(0)
+  date      DateTime @db.Date
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Profile {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  firstName      String?
+  lastName       String?
+  dob            DateTime?
+  avatarUrl      String?
+  gender         String?
+  ageRange       String?
+  goals          String[]
+  baselineStress Float?
+  baselineSleep  Float?
+  baselineMood   Float?
+  onboarding     Boolean   @default(false)
+  height         Float?
+  weight         Float?
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Assessment {
+  id          String            @id @default(uuid())
+  title       String            @unique
+  description String?
+  type        String
+  scores      AssessmentScore[]
+}
+
+model AssessmentScore {
+  id            String     @id @default(uuid())
+  userId        String
+  assessmentId  String
+  totalScore    Int
+  severityLevel String
+  insight       String?
+  metadata      Json?
+  createdAt     DateTime   @default(now())
+  assessment    Assessment @relation(fields: [assessmentId], references: [id])
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MoodLog {
+  id           String    @id @default(uuid())
+  userId       String
+  score        Int
+  energy       Int?
+  stress       Int?
+  anxiety      Int?
+  sleepHours   Float?
+  sleepQuality Int?
+  note         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags         MoodTag[]
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model MoodTag {
+  id        String  @id @default(uuid())
+  name      String
+  moodLogId String
+  moodLog   MoodLog @relation(fields: [moodLogId], references: [id], onDelete: Cascade)
+
+  @@index([moodLogId])
+}
+
+model MoodStreak {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  lastLogDate   DateTime?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model DailySummary {
+  id              String   @id @default(uuid())
+  userId          String
+  date            DateTime @db.Date
+  avgScore        Float
+  volatilityScore Float?
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model CommunityPost {
+  id              String   @id @default(uuid())
+  userId          String
+  aliasName       String? // Snapshot of anonymous alias at post time
+  content         String   @db.Text
+  emotion         String // SAD, ANXIOUS, FRUSTRATED, TIRED, HAPPY, LONELY, STRESSED
+  type            String   @default("STANDARD") // STANDARD, HELP_ME, GRATITUDE
+  needType        String? // VENT, ADVICE, SUPPORT, RELATE
+  tags            String[] // e.g. ["study", "breakup", "career"]
+  isAnonymous     Boolean  @default(true)
+  visibilityScore Float    @default(0.0)
+  isFlagged       Boolean  @default(false)
+  flagReason      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions PostReaction[]
+  comments  PostComment[]
+  reports   PostReport[]
+  bookmarks PostBookmark[]
+
+  @@index([userId])
+  @@index([emotion])
+  @@index([type])
+  @@index([visibilityScore])
+  @@index([createdAt])
+}
+
+model PostReaction {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  type      String // SUPPORT, HUG, STAY_STRONG, FEEL_SAME
+  createdAt DateTime @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, type])
+  @@index([postId])
+  @@index([userId])
+}
+
+model PostComment {
+  id          String   @id @default(uuid())
+  postId      String
+  userId      String
+  aliasName   String?
+  content     String   @db.Text
+  parentId    String? // For single-level nesting only
+  isAnonymous Boolean  @default(true)
+  isFlagged   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  post    CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  PostComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies PostComment[] @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model PostReport {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  reason    String
+  status    String   @default("PENDING") // PENDING, REVIEWED, DISMISSED
+  createdAt DateTime @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+}
+
+model PostBookmark {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+}
+
+model Subscription {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  stripeSubId String?  @unique
+  status      String
+  validUntil  DateTime
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TherapistProfile {
+  id                String    @id @default(uuid())
+  userId            String    @unique // The user account of the therapist
+  name              String? // Explicit name if different from User profile
+  title             String? // e.g., "Clinical Psychologist"
+  specialty         String
+  languages         String[]  @default([])
+  hourlyRate        Float // Keep as base price
+  priceQuick        Float     @default(499) // 15-min consult
+  priceDeep         Float     @default(999) // 45-min session
+  priceStudent      Float     @default(299) // Student discounted rate
+  bio               String?
+  imageUrl          String? // Profile photo URL
+  availableHours    Json?
+  styleTags         String[]  @default([]) // e.g. ["Warm listener", "Direct coach"]
+  isVerified        Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  experienceYrs     Int       @default(0)
+  rating            Float     @default(5.0)
+  responseTime      String? // e.g. "Usually replies in 2 hrs"
+  sessionsCompleted Int       @default(0)
+  onlineStatus      String    @default("OFFLINE") // "ONLINE", "BUSY", "OFFLINE"
+  lastActiveAt      DateTime?
+  supportedModes    String[]  @default(["CHAT", "VOICE", "VIDEO"])
+  studentFriendly   Boolean   @default(false)
+  isConfidential    Boolean   @default(true)
+
+  // SLA Tracking
+  avgResponseTimeMins    Int   @default(0)
+  acceptRate             Float @default(100.0)
+  cancelledSessionsCount Int   @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  appointments         Appointment[]
+  reviews              TherapistReview[]
+  questions            TherapistQuestion[]
+  waitlistEntries      WaitlistEntry[]
+  availability         TherapistAvailability[]
+  messageThreads       TherapistMessageThread[] @relation("TherapistMessageThreads")
+  TherapistBlockedDate TherapistBlockedDate[]
+}
+
+model TherapistAvailability {
+  id            String    @id @default(uuid())
+  therapistId   String
+  dayOfWeek     String // "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"
+  startTime     String // "17:00" (24hr format)
+  endTime       String // "19:00"
+  mode          String    @default("CHAT") // "CHAT", "VOICE", "VIDEO"
+  isRecurring   Boolean   @default(true)
+  specificDate  DateTime? @db.Date // For one-off availability overrides
+  bufferMinutes Int       @default(15)
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@index([therapistId])
+}
+
+model TherapistBlockedDate {
+  id          String   @id @default(uuid())
+  therapistId String
+  date        DateTime @db.Date
+  reason      String? // e.g., "Holiday", "Personal Leave"
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@index([therapistId, date])
+}
+
+model TherapistMessageThread {
+  id          String   @id @default(uuid())
+  userId      String
+  therapistId String
+  category    String? // "Anxiety", "Relationship", "Career", "Stress", "Academic", "Other"
+  subject     String?
+  status      String   @default("OPEN") // OPEN, CLOSED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User               @relation("UserMessageThreads", fields: [userId], references: [id], onDelete: Cascade)
+  therapist TherapistProfile   @relation("TherapistMessageThreads", fields: [therapistId], references: [id], onDelete: Cascade)
+  messages  TherapistMessage[]
+
+  @@index([userId])
+  @@index([therapistId])
+}
+
+model TherapistMessage {
+  id          String    @id @default(uuid())
+  threadId    String
+  senderType  String // "USER" or "THERAPIST"
+  senderId    String
+  messageType String    @default("TEXT") // "TEXT", "VOICE", "IMAGE", "FILE"
+  content     String    @db.Text
+  fileUrl     String?
+  duration    Int? // voice note duration in seconds
+  status      String    @default("SENT") // "SENT", "DELIVERED", "SEEN"
+  seenAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  thread TherapistMessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+}
+
+model Appointment {
+  id            String   @id @default(uuid())
+  patientId     String
+  therapistId   String
+  date          DateTime
+  durationMin   Int      @default(45)
+  type          String   @default("VIDEO_CALL") // "VIDEO_CALL", "VOICE", "WHATSAPP"
+  status        String   @default("REQUESTED") // REQUESTED, CONFIRMED, RESCHEDULE_REQUESTED, CANCELLED, COMPLETED
+  aiSummary     String?  @db.Text
+  notes         String?  @db.Text // User notes with booking request
+  preferredSlot String? // "Morning", "Afternoon", "Evening"
+  guestName     String? // For guest/unauthenticated bookings (lead capture)
+  guestPhone    String? // Guest phone for contact
+  guestEmail    String? // Guest email for follow-up
+  reflection    Json? // Post-session feedback
+
+  // ─── Scheduling Details ────────────────────────────────────
+  scheduledStartTime DateTime?
+  scheduledEndTime   DateTime?
+  timezone           String    @default("Asia/Kolkata")
+
+  // ─── Cancellation Policy ───────────────────────────────────
+  cancelledAt          DateTime?
+  cancelledBy          String? // "USER", "THERAPIST", "ADMIN"
+  refundEligibleLater  Boolean   @default(false)
+  lateCancellationFlag Boolean   @default(false)
+
+  // ─── Client Insights Consent ───────────────────────────────
+  shareMood        Boolean @default(false)
+  shareSleep       Boolean @default(false)
+  shareAssessments Boolean @default(false)
+  shareJournal     Boolean @default(false)
+
+  // ─── Revenue Tracking ──────────────────────────────────────
+  price         Float? // Final charged price
+  discount      Float? @default(0) // Discount applied
+  commission    Float? @default(0) // Platform commission
+  paymentStatus String @default("UNPAID") // UNPAID, PAID, REFUNDED
+  sourceChannel String @default("APP") // APP, WHATSAPP, REFERRAL
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient   User             @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@index([therapistId, date])
+  @@index([patientId, status])
+}
+
+model TherapistReview {
+  id          String   @id @default(uuid())
+  patientId   String
+  therapistId String
+  rating      Int
+  text        String?
+  createdAt   DateTime @default(now())
+
+  patient   User             @relation("PatientReviews", fields: [patientId], references: [id], onDelete: Cascade)
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+}
+
+model TherapistQuestion {
+  id          String    @id @default(uuid())
+  patientId   String
+  therapistId String
+  question    String    @db.Text
+  answer      String?   @db.Text
+  isAnonymous Boolean   @default(false)
+  status      String    @default("PENDING") // PENDING, ANSWERED
+  createdAt   DateTime  @default(now())
+  answeredAt  DateTime?
+
+  patient   User             @relation("PatientQuestions", fields: [patientId], references: [id], onDelete: Cascade)
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+}
+
+model WaitlistEntry {
+  id          String   @id @default(uuid())
+  patientId   String
+  therapistId String
+  status      String   @default("WAITING") // WAITING, NOTIFIED, COMPLETED
+  createdAt   DateTime @default(now())
+
+  patient   User             @relation("PatientWaitlist", fields: [patientId], references: [id], onDelete: Cascade)
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model WeeklyReport {
+  id            String   @id @default(uuid())
+  userId        String
+  weekStartDate DateTime @db.Date
+  weekEndDate   DateTime @db.Date
+
+  // ── Mood Analytics ──
+  avgMoodScore Float
+  bestMoodDay  String?
+  worstMoodDay String?
+  moodTrend    String  @default("FLAT")
+  moodLogCount Int     @default(0)
+
+  // ── Sleep ──
+  avgSleepHours    Float?
+  sleepConsistency Float?
+
+  // ── Predictions ──
+  stressAvg       Float?
+  burnoutRisk     Float?
+  anxietyTrend    Float?
+  depressionTrend Float?
+
+  // ── Engagement Metrics ──
+  gratitudeCount    Int @default(0)
+  journalCount      Int @default(0)
+  meditationMinutes Int @default(0)
+  groundingSessions Int @default(0)
+  audioMinutes      Int @default(0)
+
+  // ── Composite Scores ──
+  emotionalVolatility Float?
+  recoveryScore       Float?
+  wellnessScore       Float?
+  engagementScore     Float?
+  cmhiWeeklyScore     Float?
+  streakScore         Int    @default(0)
+
+  // ── AI Derived ──
+  aiSummary         String   @db.Text
+  aiTitle           String?
+  aiWhatHelped      String?  @db.Text
+  aiChallenges      String?  @db.Text
+  aiComparison      String?  @db.Text
+  aiRecommendations String[]
+  aiEncouragement   String?
+
+  // ── Previous Week Comparison ──
+  previousWellnessScore Float?
+  previousMoodScore     Float?
+  weekDelta             Float?
+  improved              Boolean?
+
+  // ── Safety ──
+  crisisRiskLevel String @default("LOW")
+
+  // ── Confidence & Metadata ──
+  dataCompleteness Float     @default(0)
+  dataConfidence   String    @default("STARTER")
+  lastSleepLogAt   DateTime?
+  reportVersion    String    @default("2.0")
+  isShared         Boolean   @default(false)
+  isExported       Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStartDate])
+  @@index([userId, createdAt])
+}
+
+model Notification {
+  id            String    @id @default(uuid())
+  userId        String
+  type          String
+  title         String
+  body          String
+  category      String
+  priority      String    @default("MEDIUM")
+  channel       String    @default("PUSH")
+  scheduledAt   DateTime
+  sentAt        DateTime?
+  readAt        DateTime?
+  deepLink      String?
+  metadata      Json?
+  retryCount    Int       @default(0)
+  failureReason String?
+  expiresAt     DateTime?
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([scheduledAt, sentAt])
+  @@index([category])
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  platform  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model NotificationPreference {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  moodReminders       Boolean  @default(true)
+  sleepReminders      Boolean  @default(true)
+  assessmentReminders Boolean  @default(true)
+  weeklyReportAlerts  Boolean  @default(true)
+  streakAlerts        Boolean  @default(true)
+  therapyReminders    Boolean  @default(true)
+  meditationReminders Boolean  @default(false)
+  journalReminders    Boolean  @default(false)
+  communityAlerts     Boolean  @default(true)
+  marketingAlerts     Boolean  @default(false)
+  quietHoursStart     String?
+  quietHoursEnd       String?
+  timezone            String   @default("UTC")
+  moodReminderTime    String   @default("20:00")
+  sleepReminderTime   String   @default("22:30")
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ReminderSchedule {
+  id            String    @id @default(uuid())
+  userId        String
+  reminderType  String
+  scheduledTime String
+  daysOfWeek    String[]
+  isActive      Boolean   @default(true)
+  snoozedUntil  DateTime?
+  lastFiredAt   DateTime?
+  nextFireAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reminderType])
+  @@index([nextFireAt, isActive])
+}
+
+model CrisisEvent {
+  id          String          @id @default(uuid())
+  userId      String
+  riskLevel   CrisisRiskLevel
+  category    CrisisCategory
+  triggerText String?
+  source      String
+  latitude    Float?
+  longitude   Float?
+  accuracy    Float?
+  isHandled   Boolean         @default(false)
+  handledAt   DateTime?
+  adminNotes  String?
+  createdAt   DateTime        @default(now())
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model CrisisScore {
+  id            String          @id @default(uuid())
+  userId        String          @unique
+  score         Float           @default(0.0)
+  lastRiskLevel CrisisRiskLevel @default(LOW)
+  updatedAt     DateTime        @updatedAt
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CrisisPlan {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  warningSigns   String[] @default([])
+  calmingActions String[] @default([])
+  reasonsToStay  String[] @default([])
+  safePlaces     String[] @default([])
+  notes          String?
+  version        Int      @default(1)
+  isGuestBackup  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TrustedContact {
+  id            String    @id @default(uuid())
+  userId        String
+  name          String
+  relation      String?
+  phoneNumber   String
+  isVerified    Boolean   @default(false)
+  priority      Int       @default(0)
+  allowQuickSms Boolean   @default(false)
+  favorite      Boolean   @default(false)
+  verifiedAt    DateTime?
+  lastUsedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmergencyResource {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  phoneNumber String
+  website     String?
+  countryCode String
+  regionCode  String?
+  category    CrisisCategory @default(OTHER)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([countryCode, regionCode])
+}
+
+model AdaptiveSession {
+  id                String             @id @default(uuid())
+  userId            String
+  mode              AssessmentMode     @default(STANDARD)
+  status            AssessmentStatus   @default(IN_PROGRESS)
+  currentScore      Float              @default(0.0)
+  dimensionalScores Json?
+  crisisFlag        Boolean            @default(false)
+  startedAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  expiresAt         DateTime?
+  completedAt       DateTime?
+  responses         AdaptiveResponse[]
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model AdaptiveResponse {
+  id         String          @id @default(uuid())
+  sessionId  String
+  questionId String
+  score      Float?
+  textValue  String?
+  timeTaken  Int?
+  createdAt  DateTime        @default(now())
+  session    AdaptiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+model MultiDimensionalScore {
+  id             String            @id @default(uuid())
+  userId         String
+  cmhi           Float
+  emotional      Float
+  cognitive      Float
+  behavioral     Float
+  physiological  Float
+  temporal       Float
+  anxietyRisk    Float
+  depressionRisk Float
+  burnoutRisk    Float
+  crisisRisk     Float
+  riskCategory   String
+  calculatedAt   DateTime          @default(now())
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  explanation    ScoreExplanation?
+
+  @@index([userId, calculatedAt])
+}
+
+model PersonalizedBaseline {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  baseEmotional   Float    @default(50.0)
+  baseCognitive   Float    @default(50.0)
+  baseBehavioral  Float    @default(50.0)
+  basePhysio      Float    @default(50.0)
+  baseTemporal    Float    @default(50.0)
+  volatilityIndex Float    @default(0.0)
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScoreExplanation {
+  id              String                @id @default(uuid())
+  scoreId         String                @unique
+  insightText     String
+  topFactor       String
+  improvementText String?
+  createdAt       DateTime              @default(now())
+  score           MultiDimensionalScore @relation(fields: [scoreId], references: [id], onDelete: Cascade)
+}
+
+model AiInsight {
+  id               String           @id @default(uuid())
+  userId           String
+  predictionType   AiPredictionType
+  status           AiInsightStatus  @default(PENDING)
+  riskLevel        CrisisRiskLevel  @default(LOW)
+  headline         String?
+  summary          String?
+  reasonCodes      String[]
+  confidenceMatrix Json?
+  content          Json?
+  observability    Json?
+  feedback         Json?
+  insightHash      String?
+  languageCode     String           @default("en")
+  expiresAt        DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  metadata         Json?
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([insightHash])
+}
+
+enum Role {
+  USER
+  THERAPIST
+  MODERATOR
+  ADMIN
+  ANONYMOUS
+}
+
+enum AssessmentMode {
+  QUICK
+  STANDARD
+  DEEP
+  ADAPTIVE
+  CRISIS
+  THERAPIST_GUIDED
+}
+
+enum AssessmentStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  EXPIRED
+}
+
+enum CrisisRiskLevel {
+  LOW
+  MEDIUM
+  MED
+  HIGH
+  SEVERE
+  CRITICAL
+  EMERGENCY
+}
+
+enum CrisisCategory {
+  SUICIDE
+  SUICIDE_IDEATION
+  HARM
+  SELF_HARM
+  PANIC_ATTACK
+  ABUSE
+  STRESS
+  ANXIETY
+  DEPRESSION
+  BURNOUT
+  SUBSTANCE_ABUSE
+  OTHER
+}
+
+enum AiPredictionType {
+  CRISIS
+  BURN_OUT
+  RECOVERY
+  MOOD_SWING
+  STRESS
+  ANXIETY
+  DEPRESSION
+  BURNOUT
+  PTSD
+  PANIC
+  SLEEP
+  CHMI
+  DETERIORATION
+  VOLATILITY
+  WEEKLY_REPORT
+}
+
+enum AiInsightStatus {
+  PENDING
+  GENERATING
+  COMPLETED
+  FAILED
+  FALLBACK_USED
+  CRISIS_OVERRIDE
+  REVIEWED
+  ARCHIVED
+}
+
+model RecoverySession {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  duration    Int      // in minutes
+  type        String   // QUICK, GUIDED, BODY, EMOTIONAL
+  category    String   // Stress Relief, Mental Fatigue, Overthinking, Emotional Pain, Low Energy
+  audioUrl    String?
+  imageUrl    String?
+  guideVoice  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  logs        RecoveryLog[]
+  stages      RecoveryStage[]
+  effectiveness RecoveryEffectiveness[]
+}
+
+model RecoveryStage {
+  id          String   @id @default(uuid())
+  sessionId   String
+  type        String   // BREATHING, GROUNDING, REFLECTION, BODY, JOURNAL, ULTRA_QUICK
+  duration    Int      // in seconds
+  title       String
+  description String?
+  content     Json?    // For prompts, image URLs, specific guidance
+  order       Int
+  isSkippable Boolean  @default(true)
+  minDuration Int?     // Minimum seconds before skipping is allowed
+
+  session RecoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+model RecoveryPreference {
+  id           String   @id @default(uuid())
+  userId       String
+  stageType    String
+  voteCount    Int      @default(0) // Positive for likes, negative for skips
+  lastUsedAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stageType])
+}
+
+model RecoveryEffectiveness {
+  id              String   @id @default(uuid())
+  userId          String
+  sessionId       String
+  avgMoodImprove  Float    @default(0)
+  avgStressReduce Float    @default(0)
+  totalCompletions Int     @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session RecoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sessionId])
+}
+
+model RecoveryLog {
+  id              String   @id @default(uuid())
+  userId          String
+  sessionId       String
+  beforeMood      Int?
+  afterMood       Int?
+  beforeStress    Int?
+  afterStress     Int?
+  durationSeconds Int?
+  createdAt       DateTime @default(now())
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session RecoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model RecoveryScore {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  stressLevel   Float    @default(0)
+  energyLevel   Float    @default(100)
+  recoveryLevel Float    @default(100)
+  streakCount   Int      @default(0)
+  lastRecoveredAt DateTime?
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GratitudeEntry {
+  id         String            @id @default(uuid())
+  userId     String
+  content    String?
+  category   String?
+  tags       String[]
+  moodState  String?
+  isFavorite Boolean           @default(false)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memories   GratitudeMemory[]
+
+  @@index([userId, createdAt])
+}
+
+model GratitudeMemory {
+  id               String              @id @default(uuid())
+  gratitudeEntryId String?
+  userId           String
+  type             GratitudeMemoryType @default(TEXT)
+  mediaUrl         String?
+  thumbnailUrl     String?
+  emotionalLabel   String?
+  createdAt        DateTime            @default(now())
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry            GratitudeEntry?     @relation(fields: [gratitudeEntryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+}
+
+model GratitudeStreak {
+  id                 String    @id @default(uuid())
+  userId             String    @unique
+  currentStreak      Int       @default(0)
+  longestStreak      Int       @default(0)
+  lastLogDate        DateTime?
+  milestonesUnlocked String[]
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum GratitudeMemoryType {
+  PHOTO
+  VOICE
+  TEXT
+  MILESTONE
+}
+
+// ─── Journal Ecosystem ────────────────────────────────────────────────────────
+model JournalEntry {
+  id          String  @id @default(uuid())
+  userId      String
+  title       String?
+  content     String  @db.Text
+  moodState   String?
+  journalType String  @default("FREE_WRITE")
+  wordCount   Int     @default(0)
+
+  isFavorite     Boolean   @default(false)
+  isPinned       Boolean   @default(false)
+  isDraft        Boolean   @default(false)
+  draftUpdatedAt DateTime?
+  isLocked       Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags       JournalTag[]
+  media      JournalMedia[]
+  aiInsights JournalAiInsight[]
+}
+
+model JournalTag {
+  id      String @id @default(uuid())
+  entryId String
+  name    String
+
+  entry JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+}
+
+model JournalMedia {
+  id       String @id @default(uuid())
+  entryId  String
+  type     String // "PHOTO", "VOICE"
+  url      String
+  duration Int? // For voice
+
+  entry JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+}
+
+model JournalAiInsight {
+  id               String   @id @default(uuid())
+  entryId          String   @unique
+  tone             String
+  emotionalScore   Float?
+  summary          String?  @db.Text
+  detectedTriggers String[]
+  suggestedAction  String?
+
+  entry JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+}
+
+model JournalStreak {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+  totalEntries  Int      @default(0)
+  badges        String[]
+  lastLogDate   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Grounding Toolkit ───────────────────────────────────────────
+
+enum GroundingExerciseType {
+  SENSORY_54321
+  PANIC_RESET
+  TOUCH_HOLD
+  BODY_SCAN
+  COLOR_BREATHING
+  SAFE_PLACE
+}
+
+enum SafePlaceEnvironment {
+  BEACH
+  FOREST
+  RAIN_ROOM
+  MOUNTAIN
+  FIREPLACE
+  NIGHT_SKY
+  GARDEN
+  COZY_BEDROOM
+}
+
+model GroundingSession {
+  id            String                @id @default(uuid())
+  userId        String
+  exerciseType  GroundingExerciseType
+  environment   SafePlaceEnvironment?
+  durationSecs  Int
+  calmBefore    Int? // 1–10 anxiety level before
+  calmAfter     Int? // 1–10 calm level after
+  wouldRepeat   Boolean? // "Would you use this again?"
+  completedFull Boolean               @default(true)
+  completedAt   DateTime              @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GroundingStreak {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  totalSessions   Int      @default(0)
+  totalMinutes    Int      @default(0)
+  badges          String[]
+  lastSessionDate DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GroundingFavoriteEnvironment {
+  id          String               @id @default(uuid())
+  userId      String
+  environment SafePlaceEnvironment
+  savedAt     DateTime             @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GroundingAnalytics {
+  id                    String                 @id @default(uuid())
+  userId                String                 @unique
+  mostUsedExercise      GroundingExerciseType?
+  mostEffectiveExercise GroundingExerciseType?
+  averageCalmRating     Float                  @default(0)
+  totalMinutes          Int                    @default(0)
+  weeklySessions        Int                    @default(0)
+  favoriteEnvironment   SafePlaceEnvironment?
+  updatedAt             DateTime               @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GroundingExerciseTemplate {
+  id           String                @id @default(uuid())
+  exerciseType GroundingExerciseType
+  title        String
+  subtitle     String?
+  instructions Json
+  durationSecs Int?
+  sortOrder    Int                   @default(0)
+  isActive     Boolean               @default(true)
+  createdAt    DateTime              @default(now())
+}
+
+// ─── Meditation Toolkit ───────────────────────────────────────────
+
+enum MeditationCategory {
+  SLEEP
+  FOCUS
+  ANXIETY_RELIEF
+  STRESS_RECOVERY
+  GRATITUDE
+  MORNING
+  EVENING
+  BODY_SCAN
+  CONFIDENCE
+  SELF_LOVE
+  DEEP_RELAXATION
+  VISUALIZATION
+  PANIC_RECOVERY
+  HEALING
+  PRODUCTIVITY
+  SPIRITUAL
+}
+
+model MeditationContent {
+  id               String             @id @default(uuid())
+  title            String
+  subtitle         String?
+  description      String?            @db.Text
+  category         MeditationCategory
+  durationMinutes  Int
+  difficulty       String // "Beginner", "Intermediate", "Advanced"
+  bestTimeOfDay    String? // "Morning", "Evening", "Anytime"
+  coverImageUrl    String?
+  audioUrl         String // Cloudflare R2 URL
+  backgroundTheme  String? // "Night Sky", "Forest", etc.
+  voiceType        String? // "Male", "Female", "AI Soft"
+  ambientSoundType String? // "Rain", "Ocean", "Binaural"
+  tags             String[]
+  isFeatured       Boolean            @default(false)
+  isPremium        Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+
+  sessions  MeditationSession[]
+  favorites MeditationFavorite[]
+  downloads MeditationDownload[]
+}
+
+model MeditationSession {
+  id            String   @id @default(uuid())
+  userId        String
+  contentId     String
+  durationSecs  Int
+  calmBefore    Int? // 1–10 calm level before
+  calmAfter     Int? // 1–10 calm level after
+  completedFull Boolean  @default(true)
+  completedAt   DateTime @default(now())
+
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content MeditationContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model MeditationStreak {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  totalSessions   Int      @default(0)
+  totalMinutes    Int      @default(0)
+  badges          String[]
+  lastSessionDate DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MeditationAnalytics {
+  id                     String              @id @default(uuid())
+  userId                 String              @unique
+  weeklyMinutes          Int                 @default(0)
+  monthlySessions        Int                 @default(0)
+  mostEffectiveCategory  MeditationCategory?
+  favoriteCategory       MeditationCategory?
+  averageCalmImprovement Float               @default(0)
+  updatedAt              DateTime            @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MeditationFavorite {
+  id        String   @id @default(uuid())
+  userId    String
+  contentId String
+  savedAt   DateTime @default(now())
+
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content MeditationContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+}
+
+// ─── Audio Sanctuary ──────────────────────────────────────────────────────────
+
+enum AudioCategoryType {
+  RAIN
+  OCEAN
+  FIREPLACE
+  WHITE_NOISE
+  BROWN_NOISE
+  MEDITATION
+  SLEEP_STORY
+  FOCUS
+  NATURE
+  PIANO
+  TIBETAN_BOWLS
+  SPACE
+  ANXIETY_RELIEF
+  DEEP_RELAXATION
+}
+
+model AudioTrack {
+  id              String            @id @default(uuid())
+  title           String
+  description     String?
+  category        AudioCategoryType
+  subCategory     String?
+  bucketName      String?
+  folderName      String?
+  fileName        String?
+  artworkFile     String?
+  audioUrl        String
+  artworkUrl      String?
+  durationSeconds Int?
+  tags            String[]
+  moodBenefit     String?
+  isPremium       Boolean           @default(false)
+  isFeatured      Boolean           @default(false)
+  playCount       Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  histories UserAudioHistory[]
+  downloads DownloadedAudioTrack[]
+
+  @@index([category])
+  @@index([isFeatured])
+}
+
+model UserAudioHistory {
+  id           String   @id @default(uuid())
+  userId       String
+  audioTrackId String
+  playedAt     DateTime @default(now())
+  progress     Int? // seconds elapsed when paused
+  isFavorite   Boolean  @default(false)
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track AudioTrack @relation(fields: [audioTrackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, audioTrackId])
+  @@index([userId, playedAt(sort: Desc)])
+}
+
+model DownloadedAudioTrack {
+  id           String    @id @default(uuid())
+  userId       String
+  audioTrackId String
+  localPath    String
+  fileSize     Int? // bytes
+  downloadedAt DateTime  @default(now())
+  lastPlayedAt DateTime?
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track AudioTrack @relation(fields: [audioTrackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, audioTrackId])
+  @@index([userId])
+}
+
+model MeditationDownload {
+  id           String   @id @default(uuid())
+  userId       String
+  contentId    String
+  downloadedAt DateTime @default(now())
+
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content MeditationContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+}
+
+// ─── Focus Ecosystem ────────────────────────────────────────────────────────
+enum FocusMode {
+  CALM_START
+  DEEP_WORK
+  STUDY_SPRINT
+  FLOW_STATE
+  RESCUE_MODE
+  EXAM_MODE
+  CUSTOM
+}
+
+model FocusSession {
+  id                String    @id @default(uuid())
+  userId            String
+  mode              FocusMode @default(DEEP_WORK)
+  durationMinutes   Int
+  actualDurationSec Int       @default(0)
+  completed         Boolean   @default(false)
+  completedPercent  Float     @default(0.0)
+  interruptions     Int       @default(0)
+  deviceInterrupted Int       @default(0) // Count of app exits
+  goal              String?   @db.Text // The "Intent" ritual
+  moodBefore        String?
+  moodAfter         String?
+  selectedAudio     String? // Track ID or Name
+  startedAt         DateTime  @default(now())
+  endedAt           DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt])
+}
+
+model FocusStats {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  totalMinutes  Int       @default(0)
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  weeklyMinutes Int       @default(0)
+  lastSessionAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Live Circles Ecosystem ──────────────────────────────────────────────────
+
+model CommunityRoom {
+  id              String    @id @default(uuid())
+  title           String
+  category        String
+  hostType        String    @default("PEER") // THERAPIST, MODERATOR, PEER, AI
+  hostName        String
+  startsAt        DateTime
+  endsAt          DateTime?
+  isLive          Boolean   @default(false)
+  maxParticipants Int       @default(50)
+  isRecurring     Boolean   @default(false)
+  seriesId        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  participants RoomParticipant[]
+  reminders    RoomReminder[]
+  feedbacks    RoomFeedback[]
+  reports      RoomReport[]
+  hostControls RoomHostControl?
+  analytics    RoomAttendanceAnalytics?
+  series       RoomSeries?              @relation(fields: [seriesId], references: [id])
+}
+
+model RoomSeries {
+  id        String          @id @default(uuid())
+  title     String
+  frequency String // DAILY, WEEKLY, MONTHLY
+  timeOfDay String // e.g., "08:00 AM"
+  rooms     CommunityRoom[]
+}
+
+model RoomParticipant {
+  id       String    @id @default(uuid())
+  roomId   String
+  userId   String
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+  role     String    @default("LISTENER") // HOST, SPEAKER, LISTENER
+  alias    String? // E.g., "CalmRiver72"
+
+  room CommunityRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([userId])
+}
+
+model AnonymousAlias {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  alias     String   @unique
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RoomReminder {
+  id        String   @id @default(uuid())
+  roomId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  room CommunityRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+}
+
+model RoomFeedback {
+  id        String   @id @default(uuid())
+  roomId    String
+  userId    String
+  feeling   String // BETTER, SAME, WORSE
+  notes     String?
+  createdAt DateTime @default(now())
+
+  room CommunityRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+}
+
+model RoomReport {
+  id         String   @id @default(uuid())
+  roomId     String
+  reporterId String
+  reportedId String
+  reason     String
+  status     String   @default("PENDING") // PENDING, REVIEWED, ACTION_TAKEN
+  createdAt  DateTime @default(now())
+
+  room CommunityRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model RoomHostControl {
+  id            String   @id @default(uuid())
+  roomId        String   @unique
+  isChatMuted   Boolean  @default(false)
+  pinnedMessage String?
+  updatedAt     DateTime @updatedAt
+
+  room CommunityRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model RoomAttendanceAnalytics {
+  id               String @id @default(uuid())
+  roomId           String @unique
+  peakParticipants Int    @default(0)
+  totalJoins       Int    @default(0)
+  avgStayMinutes   Float  @default(0.0)
+
+  room CommunityRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+// ─── Groups Ecosystem ────────────────────────────────────────────────────────
+
+model Group {
+  id                 String  @id @default(uuid())
+  title              String
+  description        String  @db.Text
+  category           String // ANXIETY, OVERTHINKING, BURNOUT, LONELINESS, STUDENT, CAREER, BREAKUP, CONFIDENCE, DISCIPLINE, FITNESS
+  type               String  @default("PEER") // PEER, THERAPIST_LED, AI_GUIDED
+  maxMembers         Int     @default(50)
+  imageUrl           String?
+  isPrivate          Boolean @default(false)
+  isApprovalRequired Boolean @default(false)
+  rules              String? @db.Text
+  welcomeMessage     String? @db.Text
+
+  // Intelligence & Monitoring
+  healthScore     Float   @default(100.0)
+  slowModeEnabled Boolean @default(true)
+  slowModeSeconds Int     @default(30)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members       GroupMember[]
+  posts         GroupPost[]
+  chatMessages  GroupChatMessage[]
+  checkIns      GroupCheckIn[]
+  reflections   GroupReflection[]
+  challenges    GroupChallenge[]
+  insights      GroupInsight?
+  exitFeedbacks GroupExitFeedback[]
+
+  @@index([category])
+}
+
+model GroupMember {
+  id               String   @id @default(uuid())
+  groupId          String
+  userId           String
+  role             String   @default("MEMBER") // ADMIN, MODERATOR, MEMBER
+  onboardingStatus String   @default("PENDING") // PENDING, COMPLETED
+  commitmentLevel  String? // DAILY, WEEKLY
+  lastActivityAt   DateTime @default(now())
+  joinedAt         DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@index([lastActivityAt])
+}
+
+model GroupPost {
+  id                 String   @id @default(uuid())
+  groupId            String
+  userId             String
+  content            String   @db.Text
+  emotion            String? // SAD, ANXIOUS, etc.
+  isAnonymous        Boolean  @default(true)
+  priority           Int      @default(0) // For content prioritization
+  backgroundGradient String?
+  imageUrl           String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  group     Group               @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions GroupPostReaction[]
+  comments  GroupPostComment[]
+
+  @@index([groupId])
+  @@index([createdAt])
+  @@index([priority])
+}
+
+model GroupPostReaction {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  type      String // SUPPORT, HUG, STAY_STRONG, FEEL_SAME
+  createdAt DateTime @default(now())
+
+  post GroupPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, type])
+  @@index([postId])
+  @@index([userId])
+}
+
+model GroupPostComment {
+  id          String   @id @default(uuid())
+  postId      String
+  userId      String
+  content     String   @db.Text
+  parentId    String?
+  isAnonymous Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  post    GroupPost          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  GroupPostComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies GroupPostComment[] @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model GroupChatMessage {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String
+  content   String   @db.Text
+  isFlagged Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+  @@index([createdAt])
+}
+
+model GroupCheckIn {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String
+  emotion   String
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, userId, createdAt])
+}
+
+model GroupReflection {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String
+  content   String   @db.Text
+  weekOf    DateTime // Start of the week for grouping
+  createdAt DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, weekOf])
+}
+
+model GroupChallenge {
+  id           String    @id @default(uuid())
+  groupId      String
+  title        String
+  description  String    @db.Text
+  durationDays Int
+  startDate    DateTime
+  endDate      DateTime?
+  status       String    @default("ACTIVE") // ACTIVE, COMPLETED
+  createdAt    DateTime  @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model GroupInsight {
+  id                String   @id @default(uuid())
+  groupId           String   @unique
+  avgMoodTrend      Json? // Array of mood data points over time
+  participationRate Float    @default(0.0)
+  healthScore       Float    @default(100.0)
+  summaryText       String?  @db.Text
+  updatedAt         DateTime @updatedAt
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model GroupExitFeedback {
+  id                 String   @id @default(uuid())
+  userId             String
+  groupId            String
+  reason             String   @db.Text
+  alternativeGroupId String?
+  createdAt          DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+}
+
+// ─── Habit System ────────────────────────────────────────────────────────────
+
+model Habit {
+  id                String    @id @default(uuid())
+  userId            String
+  title             String
+  description       String?
+  category          String    // MIND, BODY, FOCUS, RECOVERY, SOCIAL
+  duration          Int       @default(1) // duration in minutes
+  isMicro           Boolean   @default(false)
+  isRoutine         Boolean   @default(false)
+  routineType       String?   // MORNING, NIGHT, CUSTOM
+  preferredTime     String?   // "08:00"
+  triggerType       String?   // "AFTER_WAKEUP", "BEFORE_SLEEP", etc.
+  environment       String?   // "HOME", "WORK", "FLEXIBLE"
+  difficultyLevel   Int       @default(1) // 1 to 5
+  adaptabilityScore Float     @default(1.0)
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs              HabitLog[]
+  streak            HabitStreak?
+  preference        HabitPreference?
+  recoveryState     HabitRecoveryState?
+
+  @@index([userId, category])
+}
+
+model HabitLog {
+  id          String   @id @default(uuid())
+  habitId     String
+  userId      String
+  completedAt DateTime @default(now())
+  moodBefore  Int?
+  moodAfter   Int?
+  note        String?
+  duration    Int?     // Actual duration spent
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, completedAt])
+}
+
+model HabitStreak {
+  id               String   @id @default(uuid())
+  habitId          String   @unique
+  userId           String
+  currentStreak    Int      @default(0)
+  longestStreak    Int      @default(0)
+  consistencyScore Float    @default(0.0)
+  lastCompletedAt  DateTime?
+  updatedAt        DateTime @updatedAt
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model HabitPreference {
+  id             String   @id @default(uuid())
+  userId         String
+  habitId        String   @unique
+  completionRate Float    @default(0.0)
+  preferenceScore Float    @default(0.0)
+  updatedAt      DateTime @updatedAt
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model HabitRecoveryState {
+  id                  String   @id @default(uuid())
+  userId              String
+  habitId             String   @unique
+  missedDays          Int      @default(0)
+  recoveryPlanActive  Boolean  @default(false)
+  lastRecoveryActionAt DateTime?
+  updatedAt           DateTime @updatedAt
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model HabitInsight {
+  id          String   @id @default(uuid())
+  userId      String
+  habitId     String?
+  insightType String   // MOOD_IMPACT, CONSISTENCY, PEAK_TIME
+  title       String
+  description String   @db.Text
+  impactScore Float?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model HabitRecommendation {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  category    String
+  duration    Int
+  isMicro     Boolean  @default(false)
+  triggerType String?
+  goalType    String   // STRESS, FOCUS, SLEEP, DISCIPLINE, HAPPINESS
+  createdAt   DateTime @default(now())
+}
+
+// ─── Challenge System ────────────────────────────────────────────────────────
+
+model Challenge {
+  id              String         @id @default(uuid())
+  title           String
+  description     String         @db.Text
+  category        String         // MENTAL_HEALTH, FOCUS, RECOVERY, DISCIPLINE
+  durationDays    Int            // 3, 5, 7
+  difficultyLevel Int            @default(1) // 1-3
+  icon            String         @default("🎯")
+  coverGradient   String[]       @default(["#6A0DAD", "#9147FF"])
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+
+  days            ChallengeDay[]
+  userChallenges  UserChallenge[]
+}
+
+model ChallengeDay {
+  id           String          @id @default(uuid())
+  challengeId  String
+  dayNumber    Int
+  title        String          // "Build Awareness"
+  motivation   String          @db.Text  // Daily motivational message
+
+  challenge    Challenge       @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  tasks        ChallengeTask[]
+
+  @@unique([challengeId, dayNumber])
+}
+
+model ChallengeTask {
+  id          String       @id @default(uuid())
+  dayId       String
+  title       String
+  description String?
+  type        String       // HABIT, AUDIO, REFLECTION, BREATHING
+  duration    Int          @default(2) // minutes
+  orderIndex  Int          @default(0)
+  habitId     String?      // Links to Habit system for ecosystem integration
+
+  day         ChallengeDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+}
+
+model UserChallenge {
+  id                String                 @id @default(uuid())
+  userId            String
+  challengeId       String
+  startDate         DateTime               @default(now())
+  status            String                 @default("ACTIVE") // ACTIVE, COMPLETED, PAUSED, ABANDONED
+  currentDay        Int                    @default(1)
+  completedAt       DateTime?
+  // Time Awareness
+  preferredTime     String?                // "MORNING", "AFTERNOON", "EVENING"
+  reminderEnabled   Boolean                @default(true)
+  reminderTime      String?                // "08:00" (HH:mm)
+  // Drop-Off Recovery
+  missedDays        Int                    @default(0)
+  lastActiveAt      DateTime               @default(now())
+  // Progress Intelligence
+  completionRate    Float                  @default(0.0)
+  engagementScore   Float                  @default(0.0)
+  streakDays        Int                    @default(0)
+  // Adaptive Difficulty
+  adaptationLevel   Int                    @default(0) // -1 easier, 0 normal, +1 harder
+  // Exit Handling
+  abandonReason     String?
+  pausedAt          DateTime?
+
+  user              User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge         Challenge              @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  progress          UserChallengeProgress[]
+
+  @@index([userId, status])
+}
+
+model UserChallengeProgress {
+  id                   String        @id @default(uuid())
+  userChallengeId      String
+  dayNumber            Int
+  completed            Boolean       @default(false)
+  completedAt          DateTime?
+  tasksCompleted       Int           @default(0)
+  totalTasks           Int           @default(0)
+  completionPercentage Float         @default(0.0) // 0.0 to 1.0
+
+  userChallenge        UserChallenge @relation(fields: [userChallengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userChallengeId, dayNumber])
+}
