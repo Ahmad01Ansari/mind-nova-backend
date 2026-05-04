@@ -31,6 +31,8 @@ import { HabitsModule } from './modules/habits/habits.module';
 import { ChallengesModule } from './modules/challenges/challenges.module';
 import { AiModule } from './modules/ai/ai.module';
 
+import { DebugController } from './modules/debug/debug.controller';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -70,7 +72,7 @@ import { AiModule } from './modules/ai/ai.module';
     ChallengesModule,
     AiModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, DebugController],
   providers: [AppService],
 })
 export class AppModule {}
