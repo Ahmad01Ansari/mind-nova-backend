@@ -126,6 +126,9 @@ export class AuthService {
       create: { email, otp, expiresAt },
     });
 
+    // TEMPORARY: Log the OTP so you can verify without email
+    this.logger.warn(`🔑 [VERIFICATION CODE for ${email}]: ${otp}`);
+
     // DO NOT await this - let it run in the background
     this.mailService.sendOtp(email, otp).catch(err => {
       this.logger.error(`Failed to send OTP email to ${email}: ${err.message}`);
