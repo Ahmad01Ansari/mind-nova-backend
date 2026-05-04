@@ -923,7 +923,7 @@ export class TherapistService {
       orderBy: { createdAt: 'desc' },
     });
 
-    const aiServiceUrl = process.env.AI_SERVICE_URL;
+    const aiServiceUrl = process.env.AI_SERVICE_URL || 'https://mind-nova-ai.onrender.com';
     
     try {
       const axios = require('axios');
@@ -966,7 +966,7 @@ export class TherapistService {
   }
 
   async generatePostSessionNotes(appointmentId: string, therapistNotes: string) {
-    const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+    const aiServiceUrl = process.env.AI_SERVICE_URL || 'https://mind-nova-ai.onrender.com';
     try {
       const axios = require('axios');
       const response = await axios.post(

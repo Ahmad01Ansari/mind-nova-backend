@@ -44,7 +44,10 @@ export class TherapistChatGateway implements OnGatewayConnection, OnGatewayDisco
     }
 
     try {
-      const decoded = jwt.verify(token as string, process.env.JWT_SECRET!) as { sub: string };
+      // Adding clockTolerance (60s) to prevent rejection due to minor clock drift between phone and server
+      const decoded = jwt.verify(token as string, process.env.JWT_SECRET!, {
+        clockTolerance: 60,
+      }) as { sub: string };
       const userId = decoded.sub;
       
       client.data.userId = userId;
