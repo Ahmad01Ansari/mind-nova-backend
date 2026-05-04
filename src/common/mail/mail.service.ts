@@ -14,14 +14,15 @@ export class MailService {
     const pass = this.configService.get<string>('SMTP_PASS');
 
     if (host && user && pass) {
-      const isGmail = host.includes('gmail.com');
-
       this.transporter = nodemailer.createTransport({
-        ...(isGmail ? { service: 'gmail' } : { host, port, secure: port === 465 }),
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // STARTTLS
         auth: {
           user,
           pass,
         },
+        family: 4, // Force IPv4 for Render
         tls: {
           rejectUnauthorized: false,
           minVersion: 'TLSv1.2',
@@ -29,7 +30,7 @@ export class MailService {
         debug: true,
         logger: true,
       });
-      this.logger.log(`Mail service initialized with ${isGmail ? 'Gmail Service' : `SMTP (${host}:${port})`}`);
+      this.logger.log(`Mail service initialized with Gmail SMTP (IPv4/587)`);
     } else {
       this.logger.warn('SMTP credentials not found. Mail service will run in MOCK mode.');
       // Mock transporter
