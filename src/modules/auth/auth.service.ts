@@ -75,7 +75,10 @@ export class AuthService {
         },
       });
       
-      await this.sendEmailOtp(dto.email);
+      // Non-blocking email sending to prevent timeouts
+      this.sendEmailOtp(dto.email).catch(err => 
+        this.logger.error(`Background OTP re-sending failed: ${err.message}`)
+      );
 
       return {
         message: 'Verification code resent to your email',
@@ -100,7 +103,10 @@ export class AuthService {
       },
     });
 
-    await this.sendEmailOtp(dto.email);
+    // Non-blocking email sending to prevent timeouts
+    this.sendEmailOtp(dto.email).catch(err => 
+      this.logger.error(`Background OTP sending failed: ${err.message}`)
+    );
 
     return {
       message: 'Verification code sent to your email',
@@ -120,7 +126,10 @@ export class AuthService {
       create: { email, otp, expiresAt },
     });
 
-    await this.mailService.sendOtp(email, otp);
+    // DO NOT await this - let it run in the background
+    this.mailService.sendOtp(email, otp).catch(err => {
+      this.logger.error(`Failed to send OTP email to ${email}: ${err.message}`);
+    });
   }
 
   async verifyEmailOtp(email: string, otp: string) {
