@@ -29,7 +29,7 @@ export class MailService {
         },
         debug: true,
         logger: true,
-      });
+      } as any);
       this.logger.log(`Mail service initialized with Gmail SMTP (IPv4/587)`);
     } else {
       this.logger.warn('SMTP credentials not found. Mail service will run in MOCK mode.');
