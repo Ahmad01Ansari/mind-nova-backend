@@ -11,14 +11,20 @@ import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
-    prefix: '/uploads/',
-  });
+  try {
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    
+    app.useStaticAssets(join(process.cwd(), 'uploads'), {
+      prefix: '/uploads/',
+    });
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Application is running on: http://0.0.0.0:${port}`);
+    const port = process.env.PORT || 3000;
+    await app.listen(port, '0.0.0.0');
+    console.log(`🚀 Application is running on: http://0.0.0.0:${port}`);
+  } catch (error) {
+    console.error('❌ FATAL ERROR DURING STARTUP:');
+    console.error(error);
+    process.exit(1);
+  }
 }
 bootstrap();
