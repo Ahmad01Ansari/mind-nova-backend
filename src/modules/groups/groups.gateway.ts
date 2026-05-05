@@ -46,7 +46,7 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.data.userId = decoded.sub;
       this.logger.log(`✅ Client securely connected to Groups: ${client.id} (userId: ${decoded.sub})`);
     } catch (e) {
-      this.logger.error(`[groups] Connection rejected: Invalid or expired token. (${client.id})`);
+      this.logger.error(`[groups] Connection rejected: ${e.message} (${client.id})`);
       client.disconnect();
     }
   }

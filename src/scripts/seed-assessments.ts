@@ -11,6 +11,7 @@
 import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
 import { resolve } from 'path';
+import { PrismaClient } from '@prisma/client';
 
 dotenv.config({ path: resolve(__dirname, '../../.env') });
 
@@ -199,6 +200,9 @@ async function main() {
     process.exit(1);
   }
 
+  const prisma = new PrismaClient();
+
+  // 1. Seed MongoDB (Clinical Questions)
   console.log('🔗 Connecting to MongoDB...');
   await mongoose.connect(mongoUrl);
   console.log('✅ Connected to MongoDB');
@@ -206,11 +210,39 @@ async function main() {
   for (const q of questionnaires) {
     const existing = await Questionnaire.findOne({ slug: q.slug });
     if (existing) {
-      console.log(`🔄 Updating existing questionnaire: ${q.slug} (${q.questions.length} questions)`);
+      console.log(`🔄 Updating MongoDB questionnaire: ${q.slug} (${q.questions.length} questions)`);
       await Questionnaire.updateOne({ slug: q.slug }, { $set: q });
     } else {
-      console.log(`➕ Creating questionnaire: ${q.slug} (${q.questions.length} questions)`);
+      console.log(`➕ Creating MongoDB questionnaire: ${q.slug} (${q.questions.length} questions)`);
       await Questionnaire.create(q);
+    }
+  }
+
+  // 2. Seed PostgreSQL (Prisma Metadata)
+  console.log('\n🔗 Seeding PostgreSQL via Prisma...');
+  for (const q of questionnaires) {
+    const existing = await prisma.assessment.findUnique({
+      where: { title: q.title }
+    });
+
+    if (existing) {
+      console.log(`🔄 Updating Prisma assessment: ${q.title}`);
+      await prisma.assessment.update({
+        where: { id: existing.id },
+        data: {
+          description: q.description,
+          type: 'CLINICAL_SCALE'
+        }
+      });
+    } else {
+      console.log(`➕ Creating Prisma assessment: ${q.title}`);
+      await prisma.assessment.create({
+        data: {
+          title: q.title,
+          description: q.description,
+          type: 'CLINICAL_SCALE'
+        }
+      });
     }
   }
 
@@ -218,7 +250,8 @@ async function main() {
   console.log(`   Seeded ${questionnaires.length} clinical scales: ${questionnaires.map(q => q.slug).join(', ')}`);
 
   await mongoose.disconnect();
-  console.log('🔌 Disconnected from MongoDB');
+  await prisma.$disconnect();
+  console.log('🔌 All connections closed');
 }
 
 main().catch((err) => {

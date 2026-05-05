@@ -55,7 +55,7 @@ export class TherapistChatGateway implements OnGatewayConnection, OnGatewayDisco
       
       this.logger.log(`[therapist-chat] Securely connected: ${client.id} (user: ${userId})`);
     } catch (error) {
-      this.logger.error(`[therapist-chat] Connection rejected: Invalid or expired token.`);
+      this.logger.error(`[therapist-chat] Connection rejected: ${error.message}`);
       client.disconnect();
     }
   }
