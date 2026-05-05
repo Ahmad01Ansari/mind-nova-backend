@@ -30,6 +30,7 @@ import { RecoveryModule } from './modules/recovery/recovery.module';
 import { HabitsModule } from './modules/habits/habits.module';
 import { ChallengesModule } from './modules/challenges/challenges.module';
 import { AiModule } from './modules/ai/ai.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { AiModule } from './modules/ai/ai.module';
     HabitsModule,
     ChallengesModule,
     AiModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

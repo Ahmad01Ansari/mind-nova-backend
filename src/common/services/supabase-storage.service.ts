@@ -75,4 +75,25 @@ export class SupabaseStorageService {
     // Items without an id are usually folders (or check metadata if available)
     return data.filter(item => item.id == null);
   }
+
+  /**
+   * Uploads a file to a specific bucket and folder.
+   */
+  async uploadFile(bucket: string, folder: string, fileName: string, fileBuffer: Buffer, contentType: string): Promise<string> {
+    const path = folder ? `${folder}/${fileName}` : fileName;
+    const { data, error } = await this.supabase.storage
+      .from(bucket)
+      .upload(path, fileBuffer, {
+        contentType,
+        upsert: true,
+      });
+
+    if (error) {
+      this.logger.error(`Error uploading file to ${bucket}/${path}: ${error.message}`);
+      throw error;
+    }
+
+    const { data: publicData } = this.supabase.storage.from(bucket).getPublicUrl(path);
+    return publicData.publicUrl;
+  }
 }
