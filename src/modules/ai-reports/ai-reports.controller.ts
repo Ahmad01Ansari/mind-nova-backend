@@ -137,7 +137,7 @@ export class AiReportsController {
             'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret',
             'Content-Type': 'application/json',
           },
-          timeout: 45000, // Increased from 10s to 45s for Render cold starts
+          timeout: 60000, // Increased to 60s for cold starts + lazy loading
         },
       );
       return {
