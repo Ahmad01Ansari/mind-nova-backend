@@ -28,8 +28,9 @@ export class HabitsService {
   }
 
   async getTodayHabits(userId: string) {
+    // Use UTC midnight to avoid timezone-related log filtering bugs
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
     // Proactively check for missed days
     await this.checkMissedDays(userId);
@@ -47,6 +48,17 @@ export class HabitsService {
         streak: true,
         recoveryState: true,
       },
+    });
+  }
+
+  async getAllHabits(userId: string) {
+    return this.prisma.habit.findMany({
+      where: { userId, isActive: true },
+      include: {
+        streak: true,
+        recoveryState: true,
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -176,5 +188,18 @@ export class HabitsService {
       orderBy: { createdAt: 'desc' },
       take: 10,
     });
+  }
+
+  async deleteHabit(userId: string, habitId: string) {
+    const habit = await this.prisma.habit.findUnique({ where: { id: habitId } });
+    if (!habit || habit.userId !== userId) {
+      throw new NotFoundException('Habit not found');
+    }
+    // Soft-delete: set isActive=false to preserve streak history
+    await this.prisma.habit.update({
+      where: { id: habitId },
+      data: { isActive: false },
+    });
+    return { success: true };
   }
 }

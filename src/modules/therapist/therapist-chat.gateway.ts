@@ -86,8 +86,11 @@ export class TherapistChatGateway implements OnGatewayConnection, OnGatewayDisco
   @SubscribeMessage('join_thread')
   async handleJoinThread(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { threadId: string; userId: string; isTherapist?: boolean },
+    @MessageBody() data: { threadId: string; isTherapist?: boolean },
   ) {
+    const userId = client.data.userId;
+    if (!userId) return client.disconnect();
+
     const room = `thread:${data.threadId}`;
     await client.join(room);
 
@@ -97,17 +100,17 @@ export class TherapistChatGateway implements OnGatewayConnection, OnGatewayDisco
     // Update presence for therapists
     if (data.isTherapist) {
       try {
-        await this.therapistService.updatePresenceByUserId(data.userId, 'ONLINE');
+        await this.therapistService.updatePresenceByUserId(userId, 'ONLINE');
       } catch (_) {}
     }
 
     // Broadcast presence to room
     this.server.to(room).emit('presence', {
-      userId: data.userId,
+      userId,
       status: 'ONLINE',
     });
 
-    this.logger.log(`[therapist-chat] ${data.userId} joined ${room}`);
+    this.logger.log(`[therapist-chat] ${userId} joined ${room}`);
   }
 
   // ─── Send Message ─────────────────────────────────────────────
@@ -118,11 +121,13 @@ export class TherapistChatGateway implements OnGatewayConnection, OnGatewayDisco
     @MessageBody() data: SendMessagePayload,
   ) {
     const room = `thread:${data.threadId}`;
+    const authenticatedSenderId = client.data.userId;
+    if (!authenticatedSenderId) return client.disconnect();
 
-    // Persist to database
+    // Persist to database — use verified JWT userId as the authoritative senderId
     const message = await this.therapistService.createSocketMessage({
       threadId: data.threadId,
-      senderId: data.senderId,
+      senderId: authenticatedSenderId,
       senderType: data.senderType,
       content: data.content,
       messageType: data.messageType || 'TEXT',
@@ -186,19 +191,21 @@ export class TherapistChatGateway implements OnGatewayConnection, OnGatewayDisco
 
   @SubscribeMessage('update_status')
   async handleUpdateStatus(
-    @ConnectedSocket() _client: Socket,
-    @MessageBody() data: { userId: string; status: string },
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { status: string },
   ) {
+    const userId = client.data.userId;
+    if (!userId) return;
     try {
-      await this.therapistService.updatePresenceByUserId(data.userId, data.status);
+      await this.therapistService.updatePresenceByUserId(userId, data.status);
       this.server.emit('presence_update', { 
-        userId: data.userId, 
+        userId, 
         status: data.status,
         updatedAt: new Date().toISOString()
       });
-      this.logger.log(`[presence] Global update: ${data.userId} is now ${data.status}`);
+      this.logger.log(`[presence] Global update: ${userId} is now ${data.status}`);
     } catch (e) {
-      this.logger.error(`Failed to update status for ${data.userId}`, e.message);
+      this.logger.error(`Failed to update status for ${userId}`, e.message);
     }
   }
 
@@ -207,24 +214,28 @@ export class TherapistChatGateway implements OnGatewayConnection, OnGatewayDisco
   @SubscribeMessage('join_meeting')
   async handleJoinMeeting(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { sessionId: string; userId: string },
+    @MessageBody() data: { sessionId: string },
   ) {
+    const userId = client.data.userId;
+    if (!userId) return client.disconnect();
     const room = `meeting:${data.sessionId}`;
     await client.join(room);
-    this.logger.log(`[meeting] ${data.userId} joined ${room}`);
+    this.logger.log(`[meeting] ${userId} joined ${room}`);
     // Broadcast to others in the room that someone joined
-    client.to(room).emit('meeting_presence', { userId: data.userId, status: 'JOINED' });
+    client.to(room).emit('meeting_presence', { userId, status: 'JOINED' });
   }
 
   @SubscribeMessage('leave_meeting')
   async handleLeaveMeeting(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { sessionId: string; userId: string },
+    @MessageBody() data: { sessionId: string },
   ) {
+    const userId = client.data.userId;
+    if (!userId) return;
     const room = `meeting:${data.sessionId}`;
     await client.leave(room);
-    this.logger.log(`[meeting] ${data.userId} left ${room}`);
-    client.to(room).emit('meeting_presence', { userId: data.userId, status: 'LEFT' });
+    this.logger.log(`[meeting] ${userId} left ${room}`);
+    client.to(room).emit('meeting_presence', { userId, status: 'LEFT' });
   }
 
   @SubscribeMessage('meeting_action')

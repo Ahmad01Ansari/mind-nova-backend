@@ -63,6 +63,7 @@ export class JournalService {
       data: {
         title: newTitle,
         content: newContent,
+        moodState: dto.moodState ?? existing.moodState,
         isDraft: dto.isDraft,
         isFavorite: dto.isFavorite,
         isPinned: dto.isPinned,

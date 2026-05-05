@@ -11,6 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards, Inject, forwardRef } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { ModerationService } from './moderation.service';
+import * as jwt from 'jsonwebtoken';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -29,8 +30,25 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly moderationService: ModerationService,
   ) {}
 
-  handleConnection(client: Socket) {
-    this.logger.log(`Client connected to Groups: ${client.id}`);
+  async handleConnection(client: Socket) {
+    const token = client.handshake.auth?.token || client.handshake.query?.token;
+
+    if (!token) {
+      this.logger.error(`[groups] Connection rejected: No token provided. (${client.id})`);
+      client.disconnect();
+      return;
+    }
+
+    try {
+      const decoded = jwt.verify(token as string, process.env.JWT_SECRET!, {
+        clockTolerance: 30,
+      }) as { sub: string };
+      client.data.userId = decoded.sub;
+      this.logger.log(`✅ Client securely connected to Groups: ${client.id} (userId: ${decoded.sub})`);
+    } catch (e) {
+      this.logger.error(`[groups] Connection rejected: Invalid or expired token. (${client.id})`);
+      client.disconnect();
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -51,8 +69,15 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { userId: string; groupId: string; content: string },
   ) {
+    // Use the authenticated userId from JWT, not the untrusted payload
+    const userId = client.data.userId;
+    if (!userId) {
+      client.emit('error', { message: 'Authentication required.' });
+      return;
+    }
+
     const now = Date.now();
-    const lastTime = this.userLastMessageTime.get(data.userId) || 0;
+    const lastTime = this.userLastMessageTime.get(userId) || 0;
 
     // 1. "Slow Mode" Enforcement (30 seconds)
     if (now - lastTime < 30000) {
@@ -73,14 +98,14 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     // 3. Save & Broadcast
-    this.userLastMessageTime.set(data.userId, now);
+    this.userLastMessageTime.set(userId, now);
     
     // Fetch user profile for display name
-    const member = await this.groupsService.getMemberProfile(data.userId, data.groupId);
+    const member = await this.groupsService.getMemberProfile(userId, data.groupId);
     
     // Broadcast message to everyone in the group room
     this.server.to(data.groupId).emit('new_group_message', {
-      userId: data.userId,
+      userId: userId,
       userName: member?.user?.profile?.firstName || 'Member',
       content: data.content,
       toneLabel: moderation.label,
@@ -88,7 +113,7 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       createdAt: new Date().toISOString(),
     });
 
-    this.logger.log(`Group Message in ${data.groupId} from ${data.userId}`);
+    this.logger.log(`Group Message in ${data.groupId} from ${userId}`);
   }
 
   /**

@@ -137,10 +137,13 @@ export class AiReportsController {
             'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret',
             'Content-Type': 'application/json',
           },
-          timeout: 10000,
+          timeout: 45000, // Increased from 10s to 45s for Render cold starts
         },
       );
-      return response.data;
+      return {
+        success: true, // Explicitly tell the mobile app this succeeded
+        ...response.data
+      };
     } catch (error) {
       console.error(`AI Proxy Error [${type}]:`, error?.response?.data || error.message);
       return {

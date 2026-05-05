@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Query, Param, UseGuards, Req } from '@nestjs/common';
 import { HabitsService } from './habits.service';
 import { CreateHabitDto, CompleteHabitDto } from './dto/habits.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -20,6 +20,13 @@ export class HabitsController {
     return this.habitsService.getTodayHabits(userId);
   }
 
+  // Returns all active habits without a log-date filter — useful for management screens
+  @Get('all')
+  getAllHabits(@Req() req) {
+    const userId = req.user['sub'] || req.user['id'];
+    return this.habitsService.getAllHabits(userId);
+  }
+
   @Post('complete')
   completeHabit(@Req() req, @Body() dto: CompleteHabitDto) {
     const userId = req.user['sub'] || req.user['id'];
@@ -36,5 +43,11 @@ export class HabitsController {
   getInsights(@Req() req) {
     const userId = req.user['sub'] || req.user['id'];
     return this.habitsService.getInsights(userId);
+  }
+
+  @Delete(':id')
+  deleteHabit(@Req() req, @Param('id') id: string) {
+    const userId = req.user['sub'] || req.user['id'];
+    return this.habitsService.deleteHabit(userId, id);
   }
 }

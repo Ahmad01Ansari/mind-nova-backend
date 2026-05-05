@@ -40,6 +40,15 @@ export class UpdateJournalDto {
   @IsOptional()
   isDraft?: boolean;
 
+  @IsString()
+  @IsOptional()
+  moodState?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
+
   @IsBoolean()
   @IsOptional()
   isFavorite?: boolean;
