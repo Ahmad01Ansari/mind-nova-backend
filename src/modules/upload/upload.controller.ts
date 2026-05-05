@@ -1,10 +1,10 @@
 import { Controller, Post, UseInterceptors, UploadedFile, BadRequestException, UseGuards, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '@nestjs/passport';
 import { SupabaseStorageService } from '../../common/services/supabase-storage.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('upload')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'))
 export class UploadController {
   constructor(private readonly storageService: SupabaseStorageService) {}
 
