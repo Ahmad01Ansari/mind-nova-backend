@@ -38,7 +38,8 @@ export class AssessmentService {
         'pcl5': ['PTSD (PCL-5)', 'PTSD'],
         'ptsd': ['PTSD (PCL-5)', 'PTSD'],
         'pdss': ['Panic (PDSS)', 'Panic'],
-        'panic': ['Panic (PDSS)', 'Panic']
+        'panic': ['Panic (PDSS)', 'Panic'],
+        'burnout': ['Burnout (MBI-HSS)', 'Burnout']
       };
 
       const titles = slugMap[id.toLowerCase()];

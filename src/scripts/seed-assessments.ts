@@ -84,6 +84,16 @@ const PDSS_OPTIONS = [
   { text: 'Extreme / near constant', score: 4 },
 ];
 
+const MBI_OPTIONS = [
+  { text: 'Never', score: 0 },
+  { text: 'A few times a year or less', score: 1 },
+  { text: 'Once a month or less', score: 2 },
+  { text: 'A few times a month', score: 3 },
+  { text: 'Once a week', score: 4 },
+  { text: 'A few times a week', score: 5 },
+  { text: 'Every day', score: 6 },
+];
+
 // ─── Questionnaire Data ──────────────────────────────────────────────
 
 const questionnaires = [
@@ -187,6 +197,24 @@ const questionnaires = [
       { id: 'pdss_5', text: 'During the past week, were there any activities you avoided, or felt afraid of, because they caused physical sensations like those during panic attacks?', category: 'Behavior', options: PDSS_OPTIONS },
       { id: 'pdss_6', text: 'During the past week, how much did the above symptoms interfere with your ability to work or carry out your responsibilities at home?', category: 'Behavior', options: PDSS_OPTIONS },
       { id: 'pdss_7', text: 'During the past week, how much did panic and limited symptom attacks, worry about attacks, and fear of situations and activities because of attacks interfere with your social life?', category: 'Mood', options: PDSS_OPTIONS },
+    ],
+  },
+
+  // ════════════════  MBI (Burnout)  ════════════════
+  {
+    slug: 'burnout',
+    title: 'Burnout (MBI-HSS)',
+    description:
+      'The Maslach Burnout Inventory assesses three dimensions of burnout: emotional exhaustion, depersonalization, and personal accomplishment.',
+    questions: [
+      { id: 'mbi_1', text: 'I feel emotionally drained from my work', category: 'Energy', options: MBI_OPTIONS },
+      { id: 'mbi_2', text: 'I feel used up at the end of the workday', category: 'Energy', options: MBI_OPTIONS },
+      { id: 'mbi_3', text: 'I feel fatigued when I get up in the morning and have to face another day on the job', category: 'Energy', options: MBI_OPTIONS },
+      { id: 'mbi_4', text: 'Working with people all day is really a strain for me', category: 'Social', options: MBI_OPTIONS },
+      { id: 'mbi_5', text: 'I feel burned out from my work', category: 'Energy', options: MBI_OPTIONS },
+      { id: 'mbi_6', text: 'I feel I am positively influencing other people’s lives through my work', category: 'Self-Esteem', options: MBI_OPTIONS },
+      { id: 'mbi_7', text: 'I have become more callous toward people since I took this job', category: 'Behavior', options: MBI_OPTIONS },
+      { id: 'mbi_8', text: 'I worry that this job is hardening me emotionally', category: 'Mood', options: MBI_OPTIONS },
     ],
   },
 ];
