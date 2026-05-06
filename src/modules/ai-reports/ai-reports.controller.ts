@@ -137,11 +137,11 @@ export class AiReportsController {
             'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret',
             'Content-Type': 'application/json',
           },
-          timeout: 60000, // Increased to 60s for cold starts + lazy loading
+          timeout: 25000, // Reduced to 25s to return fallback before Render's 30s proxy timeout
         },
       );
       return {
-        success: true, // Explicitly tell the mobile app this succeeded
+        success: true,
         ...response.data
       };
     } catch (error) {
@@ -149,19 +149,19 @@ export class AiReportsController {
       return {
         success: false,
         predictionType: type,
-        message: 'Prediction service temporarily unavailable',
+        message: 'AI Engine is warming up',
         score: 0,
-        riskLevel: 'UNKNOWN',
-        confidence: 'Low',
+        riskLevel: 'PENDING',
+        confidence: 'None',
         inputCompleteness: 0,
         contributors: [],
-        title: 'Service Unavailable',
-        summary: 'Our AI engine is currently experiencing high load. Please try again later.',
-        actions: ['Take a moment for yourself', 'Check back in a few minutes'],
+        title: 'Engine Warming Up',
+        summary: 'Our AI infrastructure is currently waking up from an idle state. This usually takes about 30-60 seconds on our free tier.',
+        actions: ['Wait 30 seconds and try again', 'Ensure your data inputs are accurate'],
         aiAvailable: false,
         generatedAt: new Date().toISOString(),
         modelVersion: 'fallback',
-        pipelineVersion: 'phase6.2_fallback',
+        pipelineVersion: 'phase6.2_controlled_fallback',
       };
     }
   }
