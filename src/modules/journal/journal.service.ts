@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateJournalDto, UpdateJournalDto, SearchJournalDto } from './dto/journal.dto';
+import axios from 'axios';
 
 @Injectable()
 export class JournalService {
@@ -132,24 +133,47 @@ export class JournalService {
     };
   }
 
-  /// Fire and forget background processor stub
+  /// Fire and forget background processor
   private triggerAsyncAiInsight(entryId: string, content: string) {
-    setTimeout(async () => {
-      // Intentionally decoupled async payload pretending to ping Python ML
+    // We don't await this to keep the API response snappy
+    (async () => {
       try {
+        const aiServiceUrl = process.env.AI_SERVICE_URL;
+        if (!aiServiceUrl) return;
+
+        const entry = await this.prisma.journalEntry.findUnique({ where: { id: entryId } });
+        
+        const response = await axios.post(
+          `${aiServiceUrl}/analyze/journal`,
+          {
+            userId: entry.userId,
+            content: content,
+            moodState: entry.moodState,
+          },
+          {
+            headers: {
+              'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret',
+              'Content-Type': 'application/json',
+            },
+            timeout: 25000,
+          },
+        );
+
+        const data = response.data;
+
         await this.prisma.journalAiInsight.create({
           data: {
             entryId,
-            tone: 'Reflective',
-            emotionalScore: 4.5,
-            summary: 'You wrote about productivity and managing stress.',
-            suggestedAction: 'Take a brief walk to solidify these thoughts.',
-            detectedTriggers: ['Work', 'Schedule']
+            tone: data.tone || 'Reflective',
+            emotionalScore: data.emotionalScore || 5.0,
+            summary: data.summary || 'Insight processed.',
+            suggestedAction: data.suggestedAction || 'Keep writing!',
+            detectedTriggers: data.detectedTriggers || [],
           }
         });
       } catch (e) {
-        // Silent background catch
+        console.error('Journal AI Analysis Failed:', e.message);
       }
-    }, 3000);
+    })();
   }
 }
