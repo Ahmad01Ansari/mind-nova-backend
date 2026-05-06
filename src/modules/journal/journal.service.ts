@@ -142,7 +142,7 @@ export class JournalService {
         if (!aiServiceUrl) return;
 
         const entry = await this.prisma.journalEntry.findUnique({ where: { id: entryId } });
-        
+        if (!entry) return;
         const response = await axios.post(
           `${aiServiceUrl}/analyze/journal`,
           {
