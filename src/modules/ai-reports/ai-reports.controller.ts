@@ -113,6 +113,27 @@ export class AiReportsController {
   //  PREDICTION PROXY ENDPOINTS (unchanged from Phase 6)
   // ══════════════════════════════════════════════════════════════════════
 
+  @Get('health')
+  @UseGuards(AuthGuard('jwt'))
+  async checkHealth() {
+    try {
+      const aiServiceUrl = process.env.AI_SERVICE_URL;
+      if (!aiServiceUrl) return { success: false, message: 'AI_SERVICE_URL not configured' };
+      
+      const response = await axios.get(`${aiServiceUrl}/health`, {
+        headers: { 'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret' },
+        timeout: 10000,
+      });
+      return { success: true, ...response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: 'AI Service is waking up', 
+        error: error.message 
+      };
+    }
+  }
+
   @Post('predict/:type')
   @UseGuards(AuthGuard('jwt'))
   async predictModel(
@@ -137,7 +158,7 @@ export class AiReportsController {
             'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret',
             'Content-Type': 'application/json',
           },
-          timeout: 25000, // Reduced to 25s to return fallback before Render's 30s proxy timeout
+          timeout: 25000, 
         },
       );
       return {
@@ -145,7 +166,14 @@ export class AiReportsController {
         ...response.data
       };
     } catch (error) {
-      console.error(`AI Proxy Error [${type}]:`, error?.response?.data || error.message);
+      const errorData = error?.response?.data;
+      const isHtml = typeof errorData === 'string' && errorData.includes('<!DOCTYPE html>');
+      
+      console.error(
+        `AI Proxy Error [${type}]:`, 
+        isHtml ? '[HTML Error Page Received - AI Service likely down/cold]' : (errorData || error.message)
+      );
+
       return {
         success: false,
         predictionType: type,

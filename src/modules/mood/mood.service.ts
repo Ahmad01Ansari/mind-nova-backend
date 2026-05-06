@@ -689,7 +689,7 @@ export class MoodService {
       const aiResponse = await axios.post(
         `${process.env.AI_SERVICE_URL}/chat/generate`,
         { prompt },
-        { headers: { 'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET }, timeout: 90000 },
+        { headers: { 'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET }, timeout: 25000 },
       );
       return { reply: aiResponse.data.reply || '' };
     } catch (error) {
