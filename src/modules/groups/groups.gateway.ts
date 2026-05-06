@@ -79,9 +79,9 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const now = Date.now();
     const lastTime = this.userLastMessageTime.get(userId) || 0;
 
-    // 1. "Slow Mode" Enforcement (30 seconds)
-    if (now - lastTime < 30000) {
-      client.emit('error', { message: 'Slow Mode: Please wait 30s between messages.' });
+    // 1. "Slow Mode" Enforcement (5 seconds)
+    if (now - lastTime < 5000) {
+      client.emit('error', { message: 'Slow Mode: Please wait 5s between messages.' });
       return;
     }
 
@@ -100,6 +100,10 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // 3. Save & Broadcast
     this.userLastMessageTime.set(userId, now);
     
+    // Persist to database
+    await this.groupsService.saveChatMessage(userId, data.groupId, data.content, moderation.flagged || false);
+    await this.groupsService.updateMemberActivity(userId, data.groupId);
+
     // Fetch user profile for display name
     const member = await this.groupsService.getMemberProfile(userId, data.groupId);
     

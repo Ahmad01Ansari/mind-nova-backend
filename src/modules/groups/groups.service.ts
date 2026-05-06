@@ -186,6 +186,7 @@ export class GroupsService {
     });
 
     this.groupsGateway.broadcastToGroup(groupId, 'group_feed_update', { groupId });
+    await this.updateMemberActivity(userId, groupId);
     return post;
   }
   async toggleReaction(postId: string, userId: string, type: string) {
@@ -204,6 +205,7 @@ export class GroupsService {
     const post = await this.prisma.groupPost.findUnique({ where: { id: postId }, select: { groupId: true } });
     if (post) {
       this.groupsGateway.broadcastToGroup(post.groupId, 'group_post_reaction_update', { postId });
+      await this.updateMemberActivity(userId, post.groupId);
     }
 
     return { status: existing ? 'removed' : 'added', type };
@@ -226,6 +228,7 @@ export class GroupsService {
     const post = await this.prisma.groupPost.findUnique({ where: { id: postId }, select: { groupId: true } });
     if (post) {
       this.groupsGateway.broadcastToGroup(post.groupId, 'group_post_comment_update', { postId });
+      await this.updateMemberActivity(userId, post.groupId);
     }
 
     return comment;
@@ -281,7 +284,30 @@ export class GroupsService {
       },
     });
 
+    await this.updateMemberActivity(userId, groupId);
     return checkIn;
+  }
+
+  async updateMemberActivity(userId: string, groupId: string) {
+    try {
+      await this.prisma.groupMember.update({
+        where: { groupId_userId: { groupId, userId } },
+        data: { lastActivityAt: new Date() },
+      });
+    } catch (e) {
+      this.logger.error(`Failed to update member activity: ${e.message}`);
+    }
+  }
+
+  async saveChatMessage(userId: string, groupId: string, content: string, isFlagged: boolean) {
+    return this.prisma.groupChatMessage.create({
+      data: {
+        userId,
+        groupId,
+        content,
+        isFlagged,
+      },
+    });
   }
 
   async leaveGroup(userId: string, groupId: string, dto: GroupExitFeedbackDto) {
