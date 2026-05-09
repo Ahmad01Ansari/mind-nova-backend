@@ -168,6 +168,7 @@ export class AiReportsController {
     } catch (error) {
       const errorData = error?.response?.data;
       const isHtml = typeof errorData === 'string' && errorData.includes('<!DOCTYPE html>');
+      const isConfigError = error.message === 'AI_SERVICE_URL not defined' || error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED';
       
       console.error(
         `AI Proxy Error [${type}]:`, 
@@ -177,15 +178,17 @@ export class AiReportsController {
       return {
         success: false,
         predictionType: type,
-        message: 'AI Engine is warming up',
+        message: isConfigError ? `Configuration Error: ${error.message}` : 'AI Engine is warming up',
         score: 0,
         riskLevel: 'PENDING',
         confidence: 'None',
         inputCompleteness: 0,
         contributors: [],
-        title: 'Engine Warming Up',
-        summary: 'Our AI infrastructure is currently waking up from an idle state. This usually takes about 30-60 seconds on our free tier.',
-        actions: ['Wait 30 seconds and try again', 'Ensure your data inputs are accurate'],
+        title: isConfigError ? 'Service Configuration Error' : 'Engine Warming Up',
+        summary: isConfigError 
+          ? `The backend service is misconfigured. Details: ${error.message}. Please check your environment variables in Render.` 
+          : 'Our AI infrastructure is currently waking up from an idle state. This usually takes about 30-60 seconds on our free tier.',
+        actions: isConfigError ? ['Contact support or check server logs', 'Verify Render Environment Variables'] : ['Wait 30 seconds and try again', 'Ensure your data inputs are accurate'],
         aiAvailable: false,
         generatedAt: new Date().toISOString(),
         modelVersion: 'fallback',
