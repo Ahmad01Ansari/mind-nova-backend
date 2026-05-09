@@ -4,7 +4,7 @@ import { CreateJournalDto, UpdateJournalDto, SearchJournalDto } from './dto/jour
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('journal')
-// @UseGuards(AuthGuard('jwt')) // Commented out for easier rapid local testing
+@UseGuards(AuthGuard('jwt'))
 export class JournalController {
   constructor(private readonly journalService: JournalService) {}
 
