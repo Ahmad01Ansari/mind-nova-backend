@@ -16,8 +16,8 @@ export class MailService {
     if (host && user && pass) {
       this.transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
-        port: 587,
-        secure: false, // STARTTLS
+        port: 465,
+        secure: true, // SSL/TLS
         auth: {
           user,
           pass,
@@ -25,7 +25,6 @@ export class MailService {
         family: 4, // Force IPv4 for Render
         tls: {
           rejectUnauthorized: false,
-          minVersion: 'TLSv1.2',
         },
         debug: true,
         logger: true,
