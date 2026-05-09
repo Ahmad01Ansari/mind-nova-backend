@@ -9,9 +9,9 @@ async function main() {
   const resources = [
     // US Resources
     {
-      name: '988 Suicide & Crisis Lifeline',
+      name: '102 Suicide & Crisis Lifeline',
       description: 'Available 24/7, free and confidential support for people in distress, prevention and crisis resources.',
-      phoneNumber: '988',
+      phoneNumber: '102',
       website: 'https://988lifeline.org',
       countryCode: 'US',
       category: CrisisCategory.SUICIDE_IDEATION,

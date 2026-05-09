@@ -29,7 +29,7 @@ export class AiService {
     // 1. Safety Check (Crisis Detection)
     if (this.isCrisisPrompt(prompt)) {
       return {
-        text: "I'm really sorry you're feeling this way. You're not alone. I've activated SOS mode to help you connect with support. Please consider calling or texting the 988 Suicide & Crisis Lifeline right now — it's free, confidential, and available 24/7.",
+        text: "I'm really sorry you're feeling this way. You're not alone. I've activated SOS mode to help you connect with support. Please consider calling or texting the 102 Suicide & Crisis Lifeline right now — it's free, confidential, and available 24/7.",
         source: 'fallback',
         confidence: 1.0,
         latency: Date.now() - startTime,

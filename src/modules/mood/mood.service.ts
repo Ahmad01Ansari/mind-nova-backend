@@ -616,7 +616,7 @@ export class MoodService {
           riskLevel: 'HIGH', category: config.category.toUpperCase(),
           triggerScreen: true,
           actions: [
-            { type: 'HOTLINE', label: 'Call Support', action: 'tel:988' },
+            { type: 'HOTLINE', label: 'Call Support', action: 'tel:102' },
             { type: 'GROUNDING', label: '5-4-3-2-1 Technique' },
           ],
         },
