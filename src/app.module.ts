@@ -31,6 +31,7 @@ import { HabitsModule } from './modules/habits/habits.module';
 import { ChallengesModule } from './modules/challenges/challenges.module';
 import { AiModule } from './modules/ai/ai.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { SleepModule } from './modules/sleep/sleep.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { UploadModule } from './modules/upload/upload.module';
     ChallengesModule,
     AiModule,
     UploadModule,
+    SleepModule,
   ],
   controllers: [AppController],
   providers: [AppService],

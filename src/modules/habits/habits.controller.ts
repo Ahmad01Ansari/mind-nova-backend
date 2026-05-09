@@ -39,6 +39,19 @@ export class HabitsController {
     return this.habitsService.getRecommendations(userId, goal);
   }
 
+  @Get('history')
+  getHistory(@Req() req, @Query('days') days?: string) {
+    const userId = req.user['sub'] || req.user['id'];
+    const daysNum = days ? parseInt(days, 10) : 30;
+    return this.habitsService.getHabitHistory(userId, daysNum);
+  }
+
+  @Get('analytics')
+  getAnalytics(@Req() req) {
+    const userId = req.user['sub'] || req.user['id'];
+    return this.habitsService.getHabitAnalytics(userId);
+  }
+
   @Get('insights')
   getInsights(@Req() req) {
     const userId = req.user['sub'] || req.user['id'];

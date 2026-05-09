@@ -108,6 +108,9 @@ model User {
   // Challenges
   userChallenges      UserChallenge[]
   aiUsage             AiUsage[]
+
+  // Sleep
+  sleepLogs           SleepLog[]
 }
 
 model AiUsage {
@@ -121,6 +124,26 @@ model AiUsage {
 
   @@unique([userId, date])
   @@index([userId])
+}
+
+model SleepLog {
+  id            String   @id @default(uuid())
+  userId        String
+  date          DateTime @db.Date
+  bedtime       String?  // "23:00" (24hr format)
+  wakeTime      String?  // "07:00"
+  durationHours Float
+  quality       Float    // 1-5
+  awakenings    Int?     @default(0)
+  stressBefore  Float?   // 1-10
+  morningMood   Float?   // 1-10
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model EmailVerification {

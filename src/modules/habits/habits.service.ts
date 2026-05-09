@@ -190,6 +190,66 @@ export class HabitsService {
     });
   }
 
+  async getHabitHistory(userId: string, days: number = 30) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setUTCHours(0, 0, 0, 0);
+
+    return this.prisma.habit.findMany({
+      where: { userId }, // include inactive so we see history of deleted habits too
+      include: {
+        logs: {
+          where: {
+            completedAt: {
+              gte: startDate,
+            },
+          },
+          orderBy: { completedAt: 'asc' },
+        },
+        streak: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getHabitAnalytics(userId: string) {
+    const habits = await this.prisma.habit.findMany({
+      where: { userId },
+      include: {
+        streak: true,
+        _count: {
+          select: { logs: true },
+        },
+      },
+    });
+
+    let totalCompletions = 0;
+    let longestStreakOverall = 0;
+    const habitStats = habits.map((h) => {
+      totalCompletions += h._count.logs;
+      const longest = h.streak?.longestStreak || 0;
+      if (longest > longestStreakOverall) {
+        longestStreakOverall = longest;
+      }
+      return {
+        id: h.id,
+        title: h.title,
+        totalCompletions: h._count.logs,
+        currentStreak: h.streak?.currentStreak || 0,
+        longestStreak: longest,
+        consistencyScore: h.streak?.consistencyScore || 0,
+        isActive: h.isActive,
+      };
+    });
+
+    return {
+      totalHabitsTracked: habits.length,
+      totalCompletions,
+      longestStreakOverall,
+      habitStats: habitStats.sort((a, b) => b.consistencyScore - a.consistencyScore),
+    };
+  }
+
   async deleteHabit(userId: string, habitId: string) {
     const habit = await this.prisma.habit.findUnique({ where: { id: habitId } });
     if (!habit || habit.userId !== userId) {

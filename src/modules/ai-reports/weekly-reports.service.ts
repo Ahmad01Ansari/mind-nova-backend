@@ -68,7 +68,13 @@ export class WeeklyReportsService {
     const gratitudeStreak = await this.prisma.gratitudeStreak.findUnique({ where: { userId } });
     const journalStreak = await this.prisma.journalStreak.findUnique({ where: { userId } });
 
-    // 9. Previous Week Report (for comparison)
+    // 9. Habit Logs
+    const habitLogs = await this.prisma.habitLog.findMany({
+      where: { userId, completedAt: { gte: weekStart, lte: now } },
+      include: { habit: { select: { title: true } } },
+    });
+
+    // 10. Previous Week Report (for comparison)
     const previousReport = await this.prisma.weeklyReport.findFirst({
       where: { userId, weekEndDate: { lt: weekStart } },
       orderBy: { createdAt: 'desc' },
@@ -130,6 +136,12 @@ export class WeeklyReportsService {
     const meditationMinutes = Math.round(meditationSessions.reduce((acc, s) => acc + s.durationSecs, 0) / 60);
     const groundingCount = groundingSessions.length;
     const audioMinutes = Math.round(audioUsage.reduce((acc, a) => acc + (a.track?.durationSeconds ?? 0), 0) / 60);
+    
+    const habitCompletions = habitLogs.length;
+    const habitBreakdown = habitLogs.reduce((acc, log) => {
+      acc[log.habit.title] = (acc[log.habit.title] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
     // ── Stress / Burnout (Enhanced Formula) ──
     const stressLogs = moodLogs.filter(l => l.stress != null).map(l => l.stress!);
@@ -163,7 +175,8 @@ export class WeeklyReportsService {
     // Engagement Score (0–100)
     const engagementScore = Math.min(100,
       (moodLogCount * 5) + (gratitudeCount * 8) + (journalCount * 10) +
-      (meditationMinutes * 3) + (groundingCount * 5) + (audioMinutes * 2)
+      (meditationMinutes * 3) + (groundingCount * 5) + (audioMinutes * 2) +
+      (habitCompletions * 5)
     );
 
     // Recovery Score (0–100): weighted composite
@@ -214,6 +227,7 @@ export class WeeklyReportsService {
       avgSleepHours, sleepConsistency,
       stressAvg, burnoutRisk, emotionalVolatility,
       gratitudeCount, journalCount, meditationMinutes, groundingSessions: groundingCount, audioMinutes,
+      habitCompletions, habitBreakdown,
       recoveryScore, wellnessScore, engagementScore, cmhiWeeklyScore, streakScore,
       topTags, bestTool, skippedDays, longestPositiveStreak,
       previousWellnessScore, previousMoodScore, weekDelta, improved,
