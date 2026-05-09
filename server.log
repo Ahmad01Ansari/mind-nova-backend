@@ -2882,3 +2882,83 @@ Please make sure your database server is running at `aws-1-ap-northeast-1.pooler
   clientVersion: '5.22.0',
   errorCode: 'P1001'
 }
+[2J[3J[H[[90m2:07:04 PM[0m] File change detected. Starting incremental compilation...
+
+[[90m2:07:04 PM[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +44ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mBullModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDiscoveryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[2026-05-09 08:37:06] DEBUG Creating transport: nodemailer (8.0.7; +https://nodemailer.com/; SMTP/8.0.7[client:8.0.7])
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[MailService] [39m[32mMail service initialized with Gmail SMTP (IPv4/587)[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +5ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGroundingModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMeditationModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMailModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAiModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTherapistModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAudioModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGratitudeModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJournalModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRecoveryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mChallengesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScoringModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mFocusModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHabitsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSleepModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mNotificationsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUploadModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAiReportsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCommunityModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCrisisModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339707  - [39m05/09/2026, 2:07:06 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGroupsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[2J[3J[H[[90m2:07:11 PM[0m] File change detected. Starting incremental compilation...
+
+[[90m2:07:11 PM[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:12 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPrismaModule dependencies initialized[39m[38;5;3m +37ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mPassportModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mBullModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJwtModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDiscoveryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[2026-05-09 08:37:13] DEBUG Creating transport: nodemailer (8.0.7; +https://nodemailer.com/; SMTP/8.0.7[client:8.0.7])
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[MailService] [39m[32mMail service initialized with Gmail SMTP (IPv4/587)[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +5ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScheduleModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGroundingModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMeditationModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMailModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAiModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTherapistModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAudioModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGratitudeModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mJournalModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mRecoveryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mChallengesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mScoringModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUsersModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mFocusModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHabitsModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSleepModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mNotificationsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mUploadModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAiReportsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCommunityModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCrisisModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 339759  - [39m05/09/2026, 2:07:13 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGroupsModule dependencies initialized[39m[38;5;3m +0ms[39m

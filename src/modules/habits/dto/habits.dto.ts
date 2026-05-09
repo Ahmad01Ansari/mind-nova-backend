@@ -63,4 +63,8 @@ export class CompleteHabitDto {
   @IsInt()
   @IsOptional()
   actualDuration?: number;
+
+  @IsOptional()
+  @IsString()
+  forDate?: string;
 }

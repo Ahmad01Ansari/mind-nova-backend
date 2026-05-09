@@ -72,6 +72,8 @@ export class HabitsService {
       throw new NotFoundException('Habit not found');
     }
 
+    const logDate = dto.forDate ? new Date(dto.forDate) : new Date();
+
     // Create log
     const log = await this.prisma.habitLog.create({
       data: {
@@ -81,11 +83,15 @@ export class HabitsService {
         moodAfter: dto.moodAfter,
         note: dto.note,
         duration: dto.actualDuration,
+        completedAt: logDate,
       },
     });
 
-    // Update streak and consistency score
-    await this.updateStreak(userId, dto.habitId);
+    // Update streak and consistency score ONLY if logging for today or if forDate is not provided
+    const isToday = !dto.forDate || new Date(dto.forDate).toDateString() === new Date().toDateString();
+    if (isToday) {
+      await this.updateStreak(userId, dto.habitId);
+    }
 
     return log;
   }
