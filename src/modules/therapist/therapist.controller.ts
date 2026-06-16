@@ -204,6 +204,19 @@ export class TherapistPanelController {
     return this.therapistService.getActiveBookings(therapistId);
   }
 
+  @Get('completed/:therapistId')
+  async getCompletedBookings(@Param('therapistId') therapistId: string) {
+    return this.therapistService.getCompletedBookings(therapistId);
+  }
+
+  @Get('patient-insights/:therapistId/:patientId')
+  async getPatientInsights(
+    @Param('therapistId') therapistId: string,
+    @Param('patientId') patientId: string,
+  ) {
+    return this.therapistService.getPatientInsights(therapistId, patientId);
+  }
+
   @Get('messages/:therapistId')
   async getPendingMessages(@Param('therapistId') therapistId: string) {
     return this.therapistService.getPendingMessages(therapistId);

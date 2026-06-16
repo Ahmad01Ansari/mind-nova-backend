@@ -1,3 +1,4 @@
+console.log("DB URL IS: " + process.env.DATABASE_URL);
 // Polyfill global crypto for Node 18 — MUST be before any other imports
 // so @nestjs/schedule's orchestrator finds crypto.randomUUID() at module-init time
 if (!globalThis.crypto) {
@@ -13,6 +14,13 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 async function bootstrap() {
   try {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    
+    // Enable CORS to allow the Flutter Web app to make requests to the backend
+    app.enableCors({
+      origin: true, // true reflects the request origin, allowing credentials: true to work
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      credentials: true,
+    });
     
     app.useStaticAssets(join(process.cwd(), 'uploads'), {
       prefix: '/uploads/',

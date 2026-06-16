@@ -135,12 +135,9 @@ export class CommunityFeedService {
     const { tab = 'FOR_YOU', emotion, page = 1, limit = 20 } = options;
     const skip = (page - 1) * limit;
 
-    // Content expiry: only show posts from the last 72 hours
-    const expiryDate = new Date(Date.now() - 72 * 60 * 60 * 1000);
-
+    // Content expiry removed: showing all posts regardless of age
     const where: any = {
       isFlagged: false,
-      createdAt: { gte: expiryDate },
     };
 
     if (emotion && emotion !== 'ALL') {
@@ -453,8 +450,22 @@ export class CommunityFeedService {
       where: { createdAt: { gte: today }, isFlagged: false },
     });
 
+    const reactionsToday = await this.prisma.postReaction.count({
+      where: { createdAt: { gte: today } },
+    });
+
+    const commentsToday = await this.prisma.postComment.count({
+      where: { createdAt: { gte: today } },
+    });
+    
+    // For active members, we will just count total users as a baseline proxy 
+    // since we don't have socket presence yet.
+    const activeMembers = await this.prisma.user.count();
+
     return {
       totalPostsToday: totalToday,
+      totalInteractionsToday: reactionsToday + commentsToday,
+      activeMembers: activeMembers,
       emotionBreakdown: emotionCounts.map(e => ({
         emotion: e.emotion,
         count: e._count._all,

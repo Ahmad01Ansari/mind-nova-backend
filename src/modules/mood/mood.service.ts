@@ -65,9 +65,11 @@ function insightMessage(logs: MoodEntry[]): string {
   return `Difficult times call for extra care. Nova is here for you 🤍`;
 }
 
-function generateWeeklyInsights(logs: MoodEntry[]): string[] {
-  const insights: string[] = [];
-  if (!logs.length) return ['Start logging moods to unlock personalized insights.'];
+function generateWeeklyInsights(logs: MoodEntry[]): Array<{ type: string; icon: string; title: string; subtitle: string }> {
+  const insights: Array<{ type: string; icon: string; title: string; subtitle: string }> = [];
+  if (!logs.length) {
+    return [{ type: 'info', icon: 'auto_awesome', title: 'Start Logging', subtitle: 'Start logging moods to unlock personalized insights.' }];
+  }
 
   // Pattern: Weekday vs Weekend
   const weekdayLogs = logs.filter(l => [1,2,3,4,5].includes(new Date(l.createdAt).getDay()));
@@ -76,7 +78,7 @@ function generateWeeklyInsights(logs: MoodEntry[]): string[] {
     const weekdayAvg = weekdayLogs.map(scoreMood).reduce((a,b)=>a+b,0)/weekdayLogs.length;
     const weekendAvg = weekendLogs.map(scoreMood).reduce((a,b)=>a+b,0)/weekendLogs.length;
     if (weekendAvg > weekdayAvg + 0.5) {
-      insights.push(`You were ${Math.round((weekendAvg - weekdayAvg) * 20)}% calmer on weekends — weekday stress may be a key factor.`);
+      insights.push({ type: 'pattern', icon: 'weekend', title: `You were ${Math.round((weekendAvg - weekdayAvg) * 20)}% calmer on weekends`, subtitle: `Weekday stress may be a key factor in your anxiety spikes.` });
     }
   }
 
@@ -85,19 +87,21 @@ function generateWeeklyInsights(logs: MoodEntry[]): string[] {
   logs.forEach(l => l.tags?.forEach(t => { tagFreq[t] = (tagFreq[t] || 0) + 1; }));
   const topTag = Object.entries(tagFreq).sort((a,b) => b[1]-a[1])[0];
   if (topTag && topTag[1] >= 2) {
-    insights.push(`"${topTag[0]}" appeared in ${topTag[1]} of your recent logs — it may be shaping your mood.`);
+    const isSleep = topTag[0].toLowerCase().includes('sleep');
+    const icon = isSleep ? 'bedtime' : 'label';
+    insights.push({ type: 'trigger', icon, title: `"${topTag[0]}" may be shaping your mood`, subtitle: `This trigger appeared in ${topTag[1]} of your recent check-ins.` });
   }
 
   // Pattern: Mostly negative
   const negativeLogs = logs.filter(l => l.category === 'negative' || l.category === 'critical');
   if (negativeLogs.length > logs.length * 0.5) {
-    insights.push(`More than half your recent check-ins were difficult. Consider a recovery session or talking to someone.`);
+    insights.push({ type: 'alert', icon: 'warning', title: `More than half your recent check-ins were difficult`, subtitle: `Consider a recovery session or talking to someone today.` });
   }
 
   // Pattern: Crisis flag
   const crisisLogs = logs.filter(l => l.aiSafetyFlag);
   if (crisisLogs.length) {
-    insights.push(`You had ${crisisLogs.length} high-stress check-in(s). Nova recommends extra self-compassion this week.`);
+    insights.push({ type: 'alert', icon: 'health_and_safety', title: `You had ${crisisLogs.length} high-stress check-in(s)`, subtitle: `Nova recommends extra self-compassion this week.` });
   }
 
   // Pattern: Improving
@@ -106,14 +110,14 @@ function generateWeeklyInsights(logs: MoodEntry[]): string[] {
     const recent = logs.slice(0, half).map(scoreMood).reduce((a,b)=>a+b,0)/half;
     const older  = logs.slice(half).map(scoreMood).reduce((a,b)=>a+b,0)/(logs.length-half);
     if (recent > older + 0.3) {
-      insights.push(`Your mood has been trending upward recently — whatever you are doing, keep it up 🌱`);
+      insights.push({ type: 'growth', icon: 'trending_up', title: `Your mood has been trending upward`, subtitle: `Whatever you are doing, keep it up 🌱` });
     } else if (older > recent + 0.3) {
-      insights.push(`Your mood dipped a little recently. Rest and small joys can help restore balance.`);
+      insights.push({ type: 'alert', icon: 'trending_down', title: `Your mood dipped a little recently`, subtitle: `Rest and small joys can help restore balance.` });
     }
   }
 
   if (!insights.length) {
-    insights.push(`You are building a great emotional self-awareness habit by logging consistently.`);
+    insights.push({ type: 'info', icon: 'edit_note', title: `You are building a great habit`, subtitle: `Logging consistently helps improve emotional self-awareness.` });
   }
 
   return insights.slice(0, 5);
@@ -476,6 +480,69 @@ export class MoodService {
     return {
       insights: generateWeeklyInsights(logs as unknown as MoodEntry[]),
       generatedAt: new Date(),
+    };
+  }
+
+  // ─── NEW: Reflection Highlights ───────────────────────────────────────────
+  async getReflectionHighlights(userId: string) {
+    const logs = await this.moodLogModel.find({ 
+      userId, 
+      notes: { $exists: true, $ne: '' } 
+    }).sort({ createdAt: -1 }).limit(50);
+
+    const highlights = logs
+      .filter(l => l.notes && l.notes.length > 20)
+      .slice(0, 4)
+      .map(l => {
+        let category = 'Reflection';
+        let color = '#938EA1';
+        if (l.category === 'positive') { category = 'Hope'; color = '#CABEFF'; }
+        else if (l.category === 'neutral') { category = 'Clarity'; color = '#44E2CD'; }
+        else if (l.category === 'negative') { category = 'Acceptance'; color = '#E6DEFF'; }
+        
+        let quote = l.notes || '';
+        if (quote.length > 80) quote = quote.substring(0, 80) + '...';
+
+        return { category, quote: `"${quote}"`, color };
+      });
+
+    return { hasData: highlights.length > 0, highlights };
+  }
+
+  // ─── NEW: Nova Suggests ───────────────────────────────────────────────────
+  async getNovaSuggests(userId: string) {
+    const lastLog = await this.moodLogModel.findOne({ userId }).sort({ createdAt: -1 });
+    
+    if (!lastLog) {
+      return {
+        title: 'Nova Suggests',
+        body: 'Start your journey by checking in today. Reflection helps build emotional resilience over time.',
+        actionLabel: 'Check In',
+        actionRoute: '/mood-checkin'
+      };
+    }
+
+    if (lastLog.category === 'negative' || lastLog.category === 'critical') {
+      return {
+        title: 'Nova Suggests',
+        body: 'Your recent patterns indicate high stress. A quick breathing session could help lower your baseline anxiety right now.',
+        actionLabel: 'Start Breathing',
+        actionRoute: '/sleep/routine'
+      };
+    } else if (lastLog.category === 'positive') {
+      return {
+        title: 'Nova Suggests',
+        body: 'You are having a great day! This is the perfect time to vault this feeling in your memory bank.',
+        actionLabel: 'Save Memory',
+        actionRoute: '/mood/memory'
+      };
+    }
+
+    return {
+      title: 'Nova Suggests',
+      body: 'Your recent patterns suggest reflection is helping your recovery. Would you like to deepen this practice?',
+      actionLabel: 'Guided Journal',
+      actionRoute: '/mood-checkin'
     };
   }
 

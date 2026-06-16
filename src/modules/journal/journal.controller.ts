@@ -10,37 +10,49 @@ export class JournalController {
 
   @Post('create')
   createEntry(@Req() req, @Body() dto: CreateJournalDto) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76'; // Dummy
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954'; // Dummy
     return this.journalService.createEntry(userId, dto);
   }
 
   @Get('history')
   getHistory(@Req() req, @Query() query: SearchJournalDto) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
     return this.journalService.getHistory(userId, query);
   }
 
   @Get('search')
   searchEntries(@Req() req, @Query() query: SearchJournalDto) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
     return this.journalService.getHistory(userId, query); // Handled by same service logic
   }
 
   @Get('analytics')
   getAnalytics(@Req() req) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
     return this.journalService.getAnalytics(userId);
+  }
+
+  @Get('memory-resurface')
+  getMemoryResurface(@Req() req) {
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
+    return this.journalService.getMemoryResurface(userId);
+  }
+
+  @Get('daily-prompt')
+  getDailyPrompt(@Req() req) {
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
+    return this.journalService.getDailyPrompt(userId);
   }
 
   @Get('entry/:id')
   getEntry(@Req() req, @Param('id') id: string) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
     return this.journalService.getEntryById(userId, id);
   }
 
   @Put('update/:id')
   updateEntry(@Req() req, @Param('id') id: string, @Body() dto: UpdateJournalDto) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
     return this.journalService.updateEntry(userId, id, dto);
   }
 

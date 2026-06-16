@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { AudioService } from './audio.service';
 import { AudioQueryDto, CreateAudioTrackDto, MarkPlayedDto, RegisterDownloadDto } from './dto/audio.dto';
 
-const MOCK_USER_ID = 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+const MOCK_USER_ID = '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
 
 @Controller('audio')
 export class AudioController {

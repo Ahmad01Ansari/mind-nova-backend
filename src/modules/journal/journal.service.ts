@@ -124,12 +124,102 @@ export class JournalService {
     const streak = await this.prisma.journalStreak.findUnique({ where: { userId } });
     const count = await this.prisma.journalEntry.count({ where: { userId, isDraft: false } });
     
+    // Calculate most common mood from last 30 entries
+    const recentEntries = await this.prisma.journalEntry.findMany({
+      where: { userId, isDraft: false, moodState: { not: null } },
+      take: 30,
+      orderBy: { createdAt: 'desc' },
+      select: { moodState: true }
+    });
+    const moodCounts: Record<string, number> = {};
+    for (const e of recentEntries) {
+      if (e.moodState) moodCounts[e.moodState] = (moodCounts[e.moodState] || 0) + 1;
+    }
+    const mostCommonMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Neutral';
+
     return {
       currentStreak: streak?.currentStreak ?? 0,
       longestStreak: streak?.longestStreak ?? 0,
       totalEntries: count,
-      mostCommonMood: 'Calm', // Mock
-      emotionalTrendScore: 4.2  // Mock
+      mostCommonMood,
+      emotionalTrendScore: 4.2
+    };
+  }
+
+  async getMemoryResurface(userId: string) {
+    const now = new Date();
+    const oneYearAgo = new Date(now);
+    oneYearAgo.setFullYear(now.getFullYear() - 1);
+
+    // Look for entries within ±7 days of 1 year ago
+    const from = new Date(oneYearAgo);
+    from.setDate(from.getDate() - 7);
+    const to = new Date(oneYearAgo);
+    to.setDate(to.getDate() + 7);
+
+    const entry = await this.prisma.journalEntry.findFirst({
+      where: {
+        userId,
+        isDraft: false,
+        createdAt: { gte: from, lte: to }
+      },
+      orderBy: { createdAt: 'desc' },
+      include: { tags: true, aiInsights: true }
+    });
+
+    if (!entry) return null;
+
+    const yearsAgo = now.getFullYear() - entry.createdAt.getFullYear();
+    return {
+      ...entry,
+      yearsAgo,
+      memoryLabel: yearsAgo === 1 ? '1 Year Ago' : `${yearsAgo} Years Ago`,
+    };
+  }
+
+  async getDailyPrompt(userId: string) {
+    // Get most recent mood to contextualise the prompt
+    const recentEntry = await this.prisma.journalEntry.findFirst({
+      where: { userId, isDraft: false },
+      orderBy: { createdAt: 'desc' },
+      select: { moodState: true, createdAt: true }
+    });
+
+    const hour = new Date().getHours();
+    const timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+    const mood = recentEntry?.moodState?.toLowerCase() ?? 'neutral';
+
+    const promptMap: Record<string, string[]> = {
+      calm: [
+        'What is one thing you appreciate about yourself today?',
+        'Describe a small moment that made you smile recently.',
+        'What does your ideal peaceful day look like?',
+      ],
+      anxious: [
+        'What is one worry you can let go of right now?',
+        'Name three things within your control today.',
+        'What would you tell a friend feeling the way you do?',
+      ],
+      sad: [
+        'What is one tiny thing that brought you comfort today?',
+        'Write about a time you overcame something difficult.',
+        'What does your inner self need most right now?',
+      ],
+      happy: [
+        'How can you carry this good energy into tomorrow?',
+        'What made today worth remembering?',
+        'Who deserves gratitude from you today?',
+      ],
+    };
+
+    const prompts = promptMap[mood] ?? promptMap['calm'];
+    const prompt = prompts[Math.floor(Math.random() * prompts.length)];
+
+    return {
+      prompt,
+      context: `Based on your ${timeOfDay} patterns and recent ${mood} state.`,
+      timeOfDay,
+      detectedMood: recentEntry?.moodState ?? 'Neutral',
     };
   }
 

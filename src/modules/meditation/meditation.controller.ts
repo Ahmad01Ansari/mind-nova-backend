@@ -21,7 +21,7 @@ export class MeditationController {
   @Get('dashboard')
   getDashboard() {
     // Hardcoding userId for now as seen in other modules
-    const mockUserId = "f8eb82f9-c9c1-499d-9dda-4c204c9f9b76";
+    const mockUserId = "0d3e8e83-2f98-45c7-a03e-d210eec2d954";
     return this.meditationService.getDashboard(mockUserId);
   }
 
@@ -37,7 +37,7 @@ export class MeditationController {
 
   @Get('recommended')
   getRecommended() {
-    const mockUserId = "f8eb82f9-c9c1-499d-9dda-4c204c9f9b76";
+    const mockUserId = "0d3e8e83-2f98-45c7-a03e-d210eec2d954";
     return this.meditationService.getRecommended(mockUserId);
   }
 
@@ -45,7 +45,7 @@ export class MeditationController {
   startSession(
     @Body() dto: StartMeditationSessionDto
   ) {
-    const mockUserId = "f8eb82f9-c9c1-499d-9dda-4c204c9f9b76";
+    const mockUserId = "0d3e8e83-2f98-45c7-a03e-d210eec2d954";
     return this.meditationService.startSession(mockUserId, dto);
   }
 
@@ -54,7 +54,7 @@ export class MeditationController {
     @Param('id') contentId: string, 
     @Body() dto: CompleteMeditationSessionDto
   ) {
-    const mockUserId = "f8eb82f9-c9c1-499d-9dda-4c204c9f9b76";
+    const mockUserId = "0d3e8e83-2f98-45c7-a03e-d210eec2d954";
     return this.meditationService.completeSession(mockUserId, contentId, dto);
   }
 
@@ -62,7 +62,7 @@ export class MeditationController {
   getHistory(
     @Query() query: MeditationHistoryQueryDto
   ) {
-    const mockUserId = "f8eb82f9-c9c1-499d-9dda-4c204c9f9b76";
+    const mockUserId = "0d3e8e83-2f98-45c7-a03e-d210eec2d954";
     return this.meditationService.getHistory(mockUserId, query);
   }
 
@@ -70,19 +70,19 @@ export class MeditationController {
   toggleFavorite(
     @Param('id') contentId: string
   ) {
-    const mockUserId = "f8eb82f9-c9c1-499d-9dda-4c204c9f9b76";
+    const mockUserId = "0d3e8e83-2f98-45c7-a03e-d210eec2d954";
     return this.meditationService.toggleFavorite(mockUserId, contentId);
   }
 
   @Get('favorites')
   getFavorites() {
-    const mockUserId = "f8eb82f9-c9c1-499d-9dda-4c204c9f9b76";
+    const mockUserId = "0d3e8e83-2f98-45c7-a03e-d210eec2d954";
     return this.meditationService.getFavorites(mockUserId);
   }
 
   @Get('analytics')
   getAnalytics() {
-    const mockUserId = "f8eb82f9-c9c1-499d-9dda-4c204c9f9b76";
+    const mockUserId = "0d3e8e83-2f98-45c7-a03e-d210eec2d954";
     return this.meditationService.getAnalytics(mockUserId);
   }
 

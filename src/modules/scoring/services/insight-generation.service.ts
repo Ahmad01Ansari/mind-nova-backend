@@ -49,7 +49,7 @@ export class InsightGenerationService {
         { prompt },
         {
           headers: { 'x-bridge-secret': process.env.FASTAPI_BRIDGE_SECRET },
-          timeout: 15000, // Increased for stability
+          timeout: 60000, // Increased to 60s for Render cold start / slow LLM generation
         }
       );
       

@@ -10,7 +10,7 @@ export class FocusController {
 
   @Post('start')
   startSession(@Req() req, @Body() dto: StartFocusSessionDto) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
     return this.focusService.startSession(userId, dto);
   }
 
@@ -20,19 +20,19 @@ export class FocusController {
     @Param('id') sessionId: string,
     @Body() dto: EndFocusSessionDto,
   ) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
     return this.focusService.endSession(userId, sessionId, dto);
   }
 
   @Get('stats')
   getStats(@Req() req) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
     return this.focusService.getStats(userId);
   }
 
   @Get('history')
   getHistory(@Req() req) {
-    const userId = req.user?.id || 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+    const userId = req.user?.id || '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
     return this.focusService.getHistory(userId);
   }
 }

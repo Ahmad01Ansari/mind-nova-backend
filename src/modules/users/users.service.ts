@@ -68,8 +68,28 @@ export class UsersService {
   }
 
   async getProfile(userId: string) {
-    return this.prisma.profile.findUnique({
+    const therapist = await this.prisma.therapistProfile.findUnique({
       where: { userId },
     });
+
+    if (therapist) {
+      return {
+        id: therapist.id,
+        userId: therapist.userId,
+        firstName: therapist.name,
+        lastName: '',
+        avatarUrl: therapist.imageUrl,
+        onboarding: true,
+        goals: [],
+      };
+    }
+
+    const profile = await this.prisma.profile.findUnique({
+      where: { userId },
+    });
+    
+    if (profile) return profile;
+
+    return null;
   }
 }

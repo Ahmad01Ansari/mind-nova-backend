@@ -95,6 +95,15 @@ export class CommunityService {
       throw new BadRequestException('Room is full');
     }
 
+    // Check for existing active participant to prevent duplicates
+    const existingParticipant = await this.prisma.roomParticipant.findFirst({
+      where: { roomId, userId, leftAt: null }
+    });
+
+    if (existingParticipant) {
+      return { participant: existingParticipant, room };
+    }
+
     let alias: string | null = null;
     if (isAnonymous) {
       alias = await this.getOrCreateAlias(userId);

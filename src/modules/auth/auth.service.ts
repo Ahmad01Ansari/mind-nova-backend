@@ -54,18 +54,20 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
+      include: { profile: true, therapistData: true },
     });
 
     if (existingUser) {
       if (existingUser.emailVerified) {
         throw new ConflictException('Email already in use');
       }
-      // If unverified, we update the existing record with new password and name
+      // If unverified, update existing record with new password and name, then auto-verify
       const hashedPassword = await bcrypt.hash(dto.password, 10);
-      await this.prisma.user.update({
+      const user = await this.prisma.user.update({
         where: { id: existingUser.id },
         data: {
           passwordHash: hashedPassword,
+          emailVerified: true,
           profile: {
             update: {
               firstName: dto.firstName,
@@ -73,18 +75,14 @@ export class AuthService {
             },
           },
         },
+        include: { profile: true, therapistData: true },
       });
-      
-      // Non-blocking email sending to prevent timeouts
-      this.sendEmailOtp(dto.email).catch(err => 
-        this.logger.error(`Background OTP re-sending failed: ${err.message}`)
-      );
 
-      return {
-        message: 'Verification code resent to your email',
-        userId: existingUser.id,
-        email: existingUser.email,
-      };
+      // Issue JWT tokens immediately (MVP: skip OTP)
+      const tokens = await this.getTokens(user.id, user.email, user.role);
+      await this.updateRefreshToken(user.id, tokens.refresh_token);
+
+      return { user, ...tokens };
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -93,7 +91,7 @@ export class AuthService {
       data: {
         email: dto.email,
         passwordHash: hashedPassword,
-        emailVerified: false,
+        emailVerified: true, // MVP: auto-verify
         profile: {
           create: {
             firstName: dto.firstName,
@@ -101,18 +99,14 @@ export class AuthService {
           },
         },
       },
+      include: { profile: true, therapistData: true },
     });
 
-    // Non-blocking email sending to prevent timeouts
-    this.sendEmailOtp(dto.email).catch(err => 
-      this.logger.error(`Background OTP sending failed: ${err.message}`)
-    );
+    // Issue JWT tokens immediately (MVP: skip OTP)
+    const tokens = await this.getTokens(user.id, user.email, user.role);
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
 
-    return {
-      message: 'Verification code sent to your email',
-      userId: user.id,
-      email: user.email,
-    };
+    return { user, ...tokens };
   }
 
   async sendEmailOtp(email: string) {
@@ -177,7 +171,10 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
-      include: { profile: true },
+      include: { 
+        profile: true,
+        therapistData: true,
+      },
     });
 
     if (!user) throw new UnauthorizedException('Invalid credentials');

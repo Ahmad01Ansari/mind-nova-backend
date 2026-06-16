@@ -4,7 +4,7 @@ import { AudioCategoryType } from '@prisma/client';
 import { AudioQueryDto, CreateAudioTrackDto, MarkPlayedDto, RegisterDownloadDto } from './dto/audio.dto';
 import { SupabaseStorageService } from '../../common/services/supabase-storage.service';
 
-const MOCK_USER_ID = 'f8eb82f9-c9c1-499d-9dda-4c204c9f9b76';
+const MOCK_USER_ID = '0d3e8e83-2f98-45c7-a03e-d210eec2d954';
 
 // Category metadata for frontend display
 const CATEGORY_META: Record<string, { emoji: string; label: string; moodBenefit: string; gradientStart: string; gradientEnd: string }> = {
@@ -22,6 +22,9 @@ const CATEGORY_META: Record<string, { emoji: string; label: string; moodBenefit:
   SPACE:          { emoji: '🌌', label: 'Space Ambience', moodBenefit: 'Expands perspective',gradientStart: '#0f172a', gradientEnd: '#1e1b4b' },
   ANXIETY_RELIEF: { emoji: '💙', label: 'Anxiety Relief', moodBenefit: 'Eases panic',       gradientStart: '#0c4a6e', gradientEnd: '#0369a1' },
   DEEP_RELAXATION:{ emoji: '✨', label: 'Deep Relaxation',moodBenefit: 'Total unwind',       gradientStart: '#581c87', gradientEnd: '#7e22ce' },
+  BINAURAL:       { emoji: '🎧', label: 'Binaural Beats',  moodBenefit: 'Brain sync',        gradientStart: '#111827', gradientEnd: '#374151' },
+  SOLFEGGIO:      { emoji: '🎼', label: 'Solfeggio',       moodBenefit: 'Energy healing',    gradientStart: '#4a044e', gradientEnd: '#701a75' },
+  BREATHWORK:     { emoji: '🌬️', label: 'Breathwork',      moodBenefit: 'Regulates nervous system', gradientStart: '#042f2e', gradientEnd: '#134e4a' },
 };
 
 // Recommendation engine logic
@@ -317,6 +320,9 @@ export class AudioService implements OnModuleInit {
     if (f.includes('relax') || f.includes('healing')) return 'DEEP_RELAXATION';
     if (f.includes('white')) return 'WHITE_NOISE';
     if (f.includes('brown')) return 'BROWN_NOISE';
+    if (f.includes('binaural')) return 'BINAURAL';
+    if (f.includes('solfeggio') || f.includes('hz')) return 'SOLFEGGIO';
+    if (f.includes('breath') || f.includes('pranayama')) return 'BREATHWORK';
     return 'NATURE'; // default fallback
   }
 }

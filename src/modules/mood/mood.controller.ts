@@ -139,6 +139,16 @@ export class MoodController {
     return this.moodService.getStreak(user.id);
   }
 
+  @Get('reflection-highlights')
+  getReflectionHighlights(@GetUser() user: User) {
+    return this.moodService.getReflectionHighlights(user.id);
+  }
+
+  @Get('nova-suggests')
+  getNovaSuggests(@GetUser() user: User) {
+    return this.moodService.getNovaSuggests(user.id);
+  }
+
   // ─── Supporting Features ────────────────────────────────────────────────────
 
   @Post('memory')

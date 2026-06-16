@@ -81,6 +81,13 @@ export class GroupsService {
     });
 
     if (!group) throw new NotFoundException('Group not found');
+    
+    // Check if user is already a member (Idempotency)
+    const existingMember = await this.prisma.groupMember.findFirst({
+      where: { userId, groupId },
+    });
+    if (existingMember) return existingMember;
+
     if (group._count.members >= group.maxMembers) {
       throw new BadRequestException('Group is full (max members reached for intimacy)');
     }
@@ -350,11 +357,16 @@ export class GroupsService {
       : 0;
 
     // Update insights
-    await this.prisma.groupInsight.update({
+    await this.prisma.groupInsight.upsert({
       where: { groupId },
-      data: {
+      update: {
         participationRate,
-        healthScore: participationRate > 20 ? 100 : 70, // Simple health logic
+        healthScore: participationRate > 20 ? 100 : 70,
+      },
+      create: {
+        groupId,
+        participationRate,
+        healthScore: participationRate > 20 ? 100 : 70,
       },
     });
 
