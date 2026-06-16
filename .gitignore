@@ -39,3 +39,9 @@ scratch/
 test-*.js
 test-*.ts
 uploads/
+get-connections.js
+get_users.ts
+test_*.js
+test_*.ts
+test-*.js
+test-*.ts
