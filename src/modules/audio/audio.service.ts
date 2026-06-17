@@ -183,17 +183,24 @@ export class AudioService implements OnModuleInit {
   }
 
   async markPlayed(userId: string, audioTrackId: string, dto: MarkPlayedDto) {
-    const [history] = await Promise.all([
-      this.prisma.userAudioHistory.upsert({
-        where: { userId_audioTrackId: { userId, audioTrackId } },
-        create: { userId, audioTrackId, progress: dto.progress },
-        update: { playedAt: new Date(), progress: dto.progress },
-      }),
-      this.prisma.audioTrack.update({
+    const history = await this.prisma.userAudioHistory.upsert({
+      where: { userId_audioTrackId: { userId, audioTrackId } },
+      create: { userId, audioTrackId, progress: dto.progress },
+      update: { playedAt: new Date(), progress: dto.progress },
+    }).catch(e => {
+      this.logger.warn(`Failed to upsert history for track ${audioTrackId}: ${e.message}`);
+      return null;
+    });
+
+    try {
+      await this.prisma.audioTrack.update({
         where: { id: audioTrackId },
         data: { playCount: { increment: 1 } },
-      }),
-    ]);
+      });
+    } catch (e) {
+      this.logger.warn(`Failed to increment play count for track ${audioTrackId}: ${e.message}`);
+    }
+
     return history;
   }
 
