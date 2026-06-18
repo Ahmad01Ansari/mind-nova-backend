@@ -177,16 +177,18 @@ export class CommunityFeedService {
     if (tab === 'FOR_YOU' && posts.length > 0) {
       const scored = posts.map(post => {
         const supportCount = post.reactions.filter(r => r.type === 'SUPPORT').length;
-        const feelSameCount = post.reactions.filter(r => r.type === 'FEEL_SAME').length;
-        const hugCount = post.reactions.filter(r => r.type === 'HUG').length;
+        const relateCount = post.reactions.filter(r => r.type === 'RELATE').length;
+        const inspiredCount = post.reactions.filter(r => r.type === 'INSPIRED').length;
+        const hopeCount = post.reactions.filter(r => r.type === 'HOPE').length;
         const commentCount = post._count.comments;
         const totalReactions = post._count.reactions;
 
         // Emotional Ranking Algorithm
         const interactionScore =
           (supportCount * 2) +
-          (feelSameCount * 3) +
-          (hugCount * 1.5) +
+          (relateCount * 3) +
+          (inspiredCount * 2) +
+          (hopeCount * 2) +
           (commentCount * 1.5);
 
         // Recency decay: posts lose score over time
@@ -274,10 +276,16 @@ export class CommunityFeedService {
     // Notify post author (optional, non-blocking)
     if (post.userId !== userId) {
       const alias = await this.communityService.getOrCreateAlias(userId);
+      
+      let title = 'You received support 🤗';
+      if (type === 'RELATE') title = 'Someone relates to you 🫂';
+      else if (type === 'INSPIRED') title = 'You inspired someone 🌱';
+      else if (type === 'HOPE') title = 'You gave someone hope ✨';
+
       this.notificationsService.createNotification({
         userId: post.userId,
         type: 'POST_REACTION',
-        title: type === 'FEEL_SAME' ? 'Someone feels the same 💛' : 'You received support 🤗',
+        title: title,
         body: `${alias} reacted to your post`,
         category: 'COMMUNITY',
         metadata: { postId },
@@ -300,13 +308,15 @@ export class CommunityFeedService {
     if (!post) return;
 
     const supportCount = post.reactions.filter(r => r.type === 'SUPPORT').length;
-    const feelSameCount = post.reactions.filter(r => r.type === 'FEEL_SAME').length;
-    const hugCount = post.reactions.filter(r => r.type === 'HUG').length;
+    const relateCount = post.reactions.filter(r => r.type === 'RELATE').length;
+    const inspiredCount = post.reactions.filter(r => r.type === 'INSPIRED').length;
+    const hopeCount = post.reactions.filter(r => r.type === 'HOPE').length;
 
     const score =
       (supportCount * 2) +
-      (feelSameCount * 3) +
-      (hugCount * 1.5) +
+      (relateCount * 3) +
+      (inspiredCount * 2) +
+      (hopeCount * 2) +
       (post._count.comments * 1.5) +
       (post._count.bookmarks * 2.5) + // Shares/Bookmarks boost
       (post.type === 'HELP_ME' ? 4.0 : 0);

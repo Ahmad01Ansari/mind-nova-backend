@@ -122,7 +122,7 @@ export class AiReportsController {
       
       const response = await axios.get(`${aiServiceUrl}/health`, {
         headers: { 'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret' },
-        timeout: 10000,
+        timeout: 120000,
       });
       return { success: true, ...response.data };
     } catch (error) {
@@ -158,12 +158,16 @@ export class AiReportsController {
             'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret',
             'Content-Type': 'application/json',
           },
-          timeout: 25000, 
+          timeout: 120000, 
         },
       );
+      const responseData = response.data;
       return {
         success: true,
-        ...response.data
+        confidence: responseData.confidence ?? 'High',
+        inputCompleteness: responseData.inputCompleteness ?? 100,
+        aiAvailable: responseData.aiAvailable ?? true,
+        ...responseData
       };
     } catch (error) {
       const errorData = error?.response?.data;

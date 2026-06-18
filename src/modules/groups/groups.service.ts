@@ -150,7 +150,7 @@ export class GroupsService {
     };
   }
 
-  async getGroupFeed(groupId: string) {
+  async getGroupFeed(groupId: string, page: number = 1, limit: number = 20) {
     // Prioritized Feed Logic:
     // 1. Priority field (Check-ins, Help posts)
     // 2. Recency
@@ -160,6 +160,8 @@ export class GroupsService {
         { priority: 'desc' },
         { createdAt: 'desc' },
       ],
+      skip: (page - 1) * limit,
+      take: limit,
       include: {
         user: {
           select: {
@@ -288,6 +290,7 @@ export class GroupsService {
         content: `Checked in feeling ${dto.emotion}. ${dto.note || ''}`,
         emotion: dto.emotion,
         priority: 2, // High priority for check-ins
+        isAnonymous: dto.isAnonymous ?? true,
       },
     });
 
@@ -314,6 +317,24 @@ export class GroupsService {
         content,
         isFlagged,
       },
+    });
+  }
+
+  async getChatMessages(groupId: string, page: number = 1, limit: number = 50) {
+    return this.prisma.groupChatMessage.findMany({
+      where: { groupId },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        user: {
+          select: {
+            profile: {
+              select: { firstName: true, avatarUrl: true }
+            }
+          }
+        }
+      }
     });
   }
 

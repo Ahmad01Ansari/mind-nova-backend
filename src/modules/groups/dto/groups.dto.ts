@@ -48,6 +48,10 @@ export class GroupCheckInDto {
   @IsString()
   @IsOptional()
   note?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isAnonymous?: boolean;
 }
 
 export class GroupOnboardingDto {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Req, Delete, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -48,9 +48,27 @@ export class GroupsController {
   }
 
   @Get(':id/feed')
-  async getGroupFeed(@Param('id') groupId: string) {
-    return this.groupsService.getGroupFeed(groupId);
+  async getGroupFeed(
+    @Param('id') groupId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 20;
+    return this.groupsService.getGroupFeed(groupId, pageNum, limitNum);
   }
+
+  @Get(':id/chat')
+  async getGroupChatMessages(
+    @Param('id') groupId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 50;
+    return this.groupsService.getChatMessages(groupId, pageNum, limitNum);
+  }
+
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', {
