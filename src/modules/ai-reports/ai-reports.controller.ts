@@ -121,7 +121,7 @@ export class AiReportsController {
       if (!aiServiceUrl) return { success: false, message: 'AI_SERVICE_URL not configured' };
       
       const response = await axios.get(`${aiServiceUrl}/health`, {
-        headers: { 'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret' },
+        headers: { 'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'secure_internal_vpc_key_mindnova_9823' },
         timeout: 120000,
       });
       return { success: true, ...response.data };
@@ -155,7 +155,7 @@ export class AiReportsController {
         requestPayload,
         {
           headers: {
-            'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'mock_secret',
+            'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'secure_internal_vpc_key_mindnova_9823',
             'Content-Type': 'application/json',
           },
           timeout: 120000, 
