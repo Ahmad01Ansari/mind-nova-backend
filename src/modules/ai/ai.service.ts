@@ -118,7 +118,7 @@ export class AiService {
 
   private async getUserContext(userId: string): Promise<string> {
     try {
-      const [profile, moods, scores] = await Promise.all([
+      const [profile, moods, scores, crisisPlan] = await Promise.all([
         this.prisma.profile.findUnique({ where: { userId } }),
         this.prisma.moodLog.findMany({
           where: { userId },
@@ -131,6 +131,7 @@ export class AiService {
           orderBy: { createdAt: 'desc' },
           take: 2,
         }),
+        this.prisma.crisisPlan.findUnique({ where: { userId } }),
       ]);
 
       let context = `--- USER CONTEXT ---\n`;
@@ -142,6 +143,13 @@ export class AiService {
       }
       if (scores.length > 0) {
         context += `Recent Assessments: ${scores.map(s => `${s.assessment.title} (${s.severityLevel})`).join(', ')}\n`;
+      }
+      if (crisisPlan) {
+        context += `--- USER'S CRISIS SUPPORT PLAN ---\n`;
+        context += `* If the user is in distress, reference these predefined coping strategies to help them.\n`;
+        if (crisisPlan.warningSigns.length > 0) context += `Warning Signs: ${crisisPlan.warningSigns.join(', ')}\n`;
+        if (crisisPlan.calmingActions.length > 0) context += `Coping Strategies / What Helps: ${crisisPlan.calmingActions.join(', ')}\n`;
+        if (crisisPlan.safePlaces.length > 0) context += `Safe Places to Go: ${crisisPlan.safePlaces.join(', ')}\n`;
       }
       context += `--------------------\n`;
       return context;
