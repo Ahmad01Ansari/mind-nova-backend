@@ -522,6 +522,16 @@ model WeeklyReport {
   meditationMinutes     Int       @default(0)
   groundingSessions     Int       @default(0)
   audioMinutes          Int       @default(0)
+  totalAppSessions      Int       @default(0)
+  totalTimeSpentMinutes Int       @default(0)
+  communityPostsCreated Int       @default(0)
+  communityComments     Int       @default(0)
+  topToolsUsed          String[]  @default([])
+  mostActiveDay         String?
+  diaryEntriesDetailed  Json      @default("[]")
+  assessmentHistory     Json      @default("[]")
+  therapistData         Json      @default("{}")
+  moodChartData         Json      @default("[]")
   emotionalVolatility   Float?
   recoveryScore         Float?
   wellnessScore         Float?

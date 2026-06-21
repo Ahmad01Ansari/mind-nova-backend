@@ -74,6 +74,24 @@ export class WeeklyReportsService {
       include: { habit: { select: { title: true } } },
     });
 
+    // 9b. NEW: Community, Therapist, and Assessment Data
+    const communityPosts = await this.prisma.communityPost.findMany({
+      where: { userId, createdAt: { gte: weekStart, lte: now } }
+    });
+    
+    const communityComments = await this.prisma.postComment.findMany({
+      where: { userId, createdAt: { gte: weekStart, lte: now } }
+    });
+    
+    const therapistAppointments = await this.prisma.appointment.findMany({
+      where: { patientId: userId, status: 'COMPLETED', date: { gte: weekStart, lte: now } }
+    });
+
+    const assessments = await this.prisma.assessmentScore.findMany({
+      where: { userId, createdAt: { gte: weekStart, lte: now } },
+      include: { assessment: true }
+    });
+
     // 10. Previous Week Report (for comparison)
     const previousReport = await this.prisma.weeklyReport.findFirst({
       where: { userId, weekEndDate: { lt: weekStart } },
@@ -121,6 +139,22 @@ export class WeeklyReportsService {
       emotionalVolatility = Math.sqrt(variance);
     }
 
+    // ── Mood Chart Data (Daily Aggregation) ──
+    const dailyMoodMap = new Map<string, { total: number; count: number }>();
+    moodLogs.forEach(log => {
+      const day = dayNames[log.createdAt.getDay()].substring(0, 3); // "Mon", "Tue"
+      if (!dailyMoodMap.has(day)) dailyMoodMap.set(day, { total: 0, count: 0 });
+      const current = dailyMoodMap.get(day)!;
+      current.total += log.score;
+      current.count += 1;
+    });
+    
+    // Create an array sorted by day of week starting from Sun (or based on the map)
+    const moodChartData = Array.from(dailyMoodMap.entries()).map(([day, data]) => ({
+      day,
+      score: data.total / data.count
+    }));
+
     // ── Sleep Metrics ──
     const sleepLogs = moodLogs.filter(l => l.sleepHours != null).map(l => l.sleepHours!);
     const avgSleepHours = sleepLogs.length > 0 ? sleepLogs.reduce((a, b) => a + b, 0) / sleepLogs.length : null;
@@ -137,6 +171,42 @@ export class WeeklyReportsService {
     const groundingCount = groundingSessions.length;
     const audioMinutes = Math.round(audioUsage.reduce((acc, a) => acc + (a.track?.durationSeconds ?? 0), 0) / 60);
     
+    const totalAppSessions = moodLogCount + gratitudeCount + journalCount + meditationSessions.length + groundingCount + audioUsage.length;
+    const totalTimeSpentMinutes = (moodLogCount * 2) + (gratitudeCount * 3) + (journalCount * 5) + meditationMinutes + (groundingCount * 2) + audioMinutes;
+    const communityPostsCreated = communityPosts.length;
+    const communityCommentsCount = communityComments.length;
+
+    // Calculate Top Tools
+    const toolUsage = [
+      { name: 'Meditation', value: meditationMinutes },
+      { name: 'Audio Soundscapes', value: audioMinutes },
+      { name: 'Journaling', value: journalCount * 10 },
+      { name: 'Gratitude', value: gratitudeCount * 8 },
+      { name: 'Box Breathing', value: groundingCount * 5 }
+    ];
+    toolUsage.sort((a, b) => b.value - a.value);
+    const topToolsUsed = toolUsage.filter(t => t.value > 0).slice(0, 3).map(t => t.name);
+
+    // Diary Entries Detailed
+    const diaryEntriesDetailed = gratitudeEntries.slice(0, 3).map(e => ({
+      date: e.createdAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      snippet: e.content ? (e.content.length > 80 ? e.content.substring(0, 80) + '...' : e.content) : 'Practiced gratitude',
+      mood: e.moodState ?? 'Grateful'
+    }));
+
+    // Assessment History
+    const assessmentHistory = assessments.map(a => ({
+      name: a.assessment.title,
+      score: a.totalScore,
+      severity: a.severityLevel
+    }));
+
+    // Therapist Data
+    const therapistData = {
+      sessionsThisWeek: therapistAppointments.length,
+      dataShared: therapistAppointments.some(a => a.shareMood || a.shareSleep || a.shareJournal)
+    };
+
     const habitCompletions = habitLogs.length;
     const habitBreakdown = habitLogs.reduce((acc, log) => {
       acc[log.habit.title] = (acc[log.habit.title] || 0) + 1;
@@ -285,7 +355,17 @@ export class WeeklyReportsService {
       crisisRiskLevel: burnoutRisk != null && burnoutRisk > 0.7 ? 'HIGH' : stressAvg != null && stressAvg > 7 ? 'MED' : 'LOW',
       dataCompleteness,
       dataConfidence,
-      reportVersion: '2.0',
+      totalAppSessions,
+      totalTimeSpentMinutes,
+      communityPostsCreated,
+      communityComments: communityCommentsCount,
+      topToolsUsed,
+      mostActiveDay: bestMoodDay,
+      diaryEntriesDetailed,
+      assessmentHistory,
+      therapistData,
+      moodChartData,
+      reportVersion: '2.1',
     };
 
     const report = await this.prisma.weeklyReport.upsert({
