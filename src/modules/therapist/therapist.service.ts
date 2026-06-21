@@ -602,7 +602,7 @@ export class TherapistService {
     });
   }
 
-  async getThreadMessages(threadId: string) {
+  async getThreadMessages(threadId: string, viewerId?: string) {
     const thread = await this.prisma.therapistMessageThread.findUnique({
       where: { id: threadId },
       include: {
@@ -613,6 +613,7 @@ export class TherapistService {
             title: true,
             imageUrl: true,
             onlineStatus: true,
+            userId: true,
           },
         },
         user: {
@@ -634,11 +635,17 @@ export class TherapistService {
       orderBy: { createdAt: 'asc' },
     });
 
-    // Mark messages as SEEN for the user (they opened the thread)
-    await this.prisma.therapistMessage.updateMany({
-      where: { threadId, senderType: 'THERAPIST', status: { not: 'SEEN' } },
-      data: { status: 'SEEN', seenAt: new Date() },
-    });
+    if (viewerId) {
+      // If the viewer is the therapist, mark USER messages as SEEN. 
+      // Otherwise, mark THERAPIST messages as SEEN.
+      const isTherapist = thread.therapist.userId === viewerId || thread.therapist.id === viewerId;
+      const targetSenderType = isTherapist ? 'USER' : 'THERAPIST';
+
+      await this.prisma.therapistMessage.updateMany({
+        where: { threadId, senderType: targetSenderType, status: { not: 'SEEN' } },
+        data: { status: 'SEEN', seenAt: new Date() },
+      });
+    }
 
     return { thread, messages };
   }
@@ -810,12 +817,9 @@ export class TherapistService {
   }
 
   async getPendingMessages(therapistId: string) {
-    return this.prisma.therapistMessageThread.findMany({
+    const threads = await this.prisma.therapistMessageThread.findMany({
       where: {
         therapistId,
-        messages: {
-          some: { senderType: 'USER', status: { not: 'SEEN' } },
-        },
       },
       orderBy: { updatedAt: 'desc' },
       include: {
@@ -832,8 +836,21 @@ export class TherapistService {
           orderBy: { createdAt: 'desc' },
           take: 1,
         },
+        _count: {
+          select: {
+            messages: {
+              where: { senderType: 'USER', status: { not: 'SEEN' } },
+            },
+          },
+        },
       },
     });
+
+    return threads.map(t => ({
+      ...t,
+      unreadCount: t._count.messages,
+      lastMessage: t.messages.length > 0 ? t.messages[0].content : 'No messages',
+    }));
   }
 
   async replyToMessage(threadId: string, therapistId: string, content: string) {

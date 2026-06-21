@@ -15,6 +15,9 @@ async function bootstrap() {
   try {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
     
+    // Crucial for graceful shutdown during Nodemon restarts to close Prisma connections
+    app.enableShutdownHooks();
+
     // Enable CORS to allow the Flutter Web app to make requests to the backend
     app.enableCors({
       origin: true, // true reflects the request origin, allowing credentials: true to work

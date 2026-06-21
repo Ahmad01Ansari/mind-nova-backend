@@ -1,12 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { CommunityGateway } from './community.gateway';
 
 @Injectable()
 export class CommunityScheduler {
   private readonly logger = new Logger(CommunityScheduler.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => CommunityGateway))
+    private communityGateway: CommunityGateway,
+  ) {}
 
   // ══════════════════════════════════════════════════
   //  Manage Room Lifecycle — runs every minute
@@ -62,6 +67,9 @@ export class CommunityScheduler {
             where: { roomId: room.id, leftAt: null },
             data: { leftAt: now }
           });
+
+          // Clear ephemeral chat history
+          this.communityGateway.clearChatHistory(room.id);
         }
       }
     } catch (error) {

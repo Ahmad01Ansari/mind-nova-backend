@@ -1229,6 +1229,7 @@ model CommunityRoom {
   category        String
   hostType        String                   @default("PEER")
   hostName        String
+  hostImageUrl    String?
   startsAt        DateTime
   endsAt          DateTime?
   isLive          Boolean                  @default(false)

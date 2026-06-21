@@ -24,6 +24,9 @@ export class CommunityGateway implements OnGatewayConnection, OnGatewayDisconnec
   // Store user presence in rooms: socketId -> { roomId, userId, alias }
   private activeClients = new Map<string, { roomId: string; userId: string; alias: string }>();
 
+  // Ephemeral chat history: roomId -> Message[]
+  private roomChats = new Map<string, Array<{ userId: string; alias: string; text: string; timestamp: string }>>();
+
   async handleConnection(client: Socket) {
     const token = client.handshake.auth?.token || client.handshake.query?.token;
 
@@ -81,6 +84,12 @@ export class CommunityGateway implements OnGatewayConnection, OnGatewayDisconnec
       alias: data.alias,
     });
 
+    // Send ephemeral chat history to the newly joined client
+    const history = this.roomChats.get(data.roomId);
+    if (history && history.length > 0) {
+      client.emit('chat_history', history);
+    }
+
     // Broadcast updated room state to all clients in the room
     this._broadcastRoomState(data.roomId);
   }
@@ -137,12 +146,25 @@ export class CommunityGateway implements OnGatewayConnection, OnGatewayDisconnec
     const roomStr = `room:${data.roomId}`;
     this.logger.log(`💬 Message from ${data.alias} in ${data.roomId}: ${text}`);
 
-    this.server.to(roomStr).emit('new_message', {
+    const newMsg = {
       userId: client.data.userId,
       alias: data.alias,
       text: text,
       timestamp: new Date().toISOString(),
-    });
+    };
+
+    if (!this.roomChats.has(data.roomId)) {
+      this.roomChats.set(data.roomId, []);
+    }
+    this.roomChats.get(data.roomId)!.push(newMsg);
+
+    this.server.to(roomStr).emit('new_message', newMsg);
+  }
+
+  // Called by CommunityScheduler when a room ends
+  clearChatHistory(roomId: string) {
+    this.roomChats.delete(roomId);
+    this.logger.log(`🧹 Cleared ephemeral chat history for ended room: ${roomId}`);
   }
 
   @SubscribeMessage('send_reaction')

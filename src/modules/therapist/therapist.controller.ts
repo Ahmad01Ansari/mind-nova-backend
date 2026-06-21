@@ -178,8 +178,8 @@ export class TherapistController {
   }
 
   @Get('messages/thread/:threadId')
-  async getThreadMessages(@Param('threadId') threadId: string) {
-    return this.therapistService.getThreadMessages(threadId);
+  async getThreadMessages(@Param('threadId') threadId: string, @Query('viewerId') viewerId?: string) {
+    return this.therapistService.getThreadMessages(threadId, viewerId);
   }
 
   @Get('my-sessions/:userId')
