@@ -112,6 +112,22 @@ export class AiService {
     return { riskLevel: 'LOW', category: 'OTHER', suggestions: [] };
   }
 
+  async analyzeVoiceEmotion(transcript: string): Promise<{ mood: string; confidence: number; triggers: string[]; riskLevel: string }> {
+    try {
+      const prompt = `Analyze this speech transcript for emotion and mood. Return ONLY a JSON object exactly matching this format: {"mood": "Happy|Sad|Anxious|Angry|Calm|Stressed", "confidence": 0.0-1.0, "triggers": ["trigger1", "trigger2"], "riskLevel": "LOW|MED|HIGH|SEVERE"}\n\nTranscript: "${transcript}"`;
+      const response = await this.tryGroq(prompt, "No context. Provide strict JSON.");
+      if (response) {
+        const match = response.text.match(/\{.*\}/s);
+        if (match) {
+          return JSON.parse(match[0]);
+        }
+      }
+    } catch (e) {
+      this.logger.error(`Voice Emotion Analysis failed: ${e.message}`);
+    }
+    return { mood: 'Calm', confidence: 0.5, triggers: [], riskLevel: 'LOW' };
+  }
+
   private getSystemPrompt(): string {
     return "You are MindNova AI, a compassionate and professional mental health support assistant. Your goal is to provide supportive, evidence-based guidance. If a user is in immediate danger, encourage them to seek professional help or call emergency services. Keep your responses concise and warm.";
   }

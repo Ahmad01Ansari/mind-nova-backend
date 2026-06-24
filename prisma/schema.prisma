@@ -91,6 +91,7 @@ model User {
   userChallenges         UserChallenge[]
   waitlistEntries        WaitlistEntry[]                @relation("PatientWaitlist")
   weeklyReports          WeeklyReport[]
+  voiceEntries           VoiceEntry[]
 }
 
 model AiUsage {
@@ -1860,4 +1861,29 @@ enum FocusMode {
   RESCUE_MODE
   EXAM_MODE
   CUSTOM
+}
+
+model VoiceEntry {
+  id          String  @id @default(uuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  featureType String // e.g., "JOURNAL", "MOOD", "NOVA", "COMMUNITY"
+  audioUrl    String? // Nullable based on user retention settings
+
+  // Transcription Data
+  originalLanguage        String? // e.g., "Hindi"
+  originalTranscript      String
+  translatedEnglish       String?
+  transcriptionConfidence Float?
+  processingProvider      String? // e.g., "Faster-Whisper"
+  durationSeconds         Float?
+
+  // Intelligence Data
+  sentimentScore Float?
+  emotionData    Json? // Stores mood, triggers, riskLevel, and future voice biomarkers
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, featureType])
+  @@index([createdAt])
 }

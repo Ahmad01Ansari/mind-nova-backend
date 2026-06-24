@@ -32,6 +32,7 @@ import { ChallengesModule } from './modules/challenges/challenges.module';
 import { AiModule } from './modules/ai/ai.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { SleepModule } from './modules/sleep/sleep.module';
+import { VoiceModule } from './modules/voice/voice.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { SleepModule } from './modules/sleep/sleep.module';
     AiModule,
     UploadModule,
     SleepModule,
+    VoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
