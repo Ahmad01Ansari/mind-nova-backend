@@ -31,7 +31,7 @@ export class FasterWhisperProvider implements VoiceProvider {
         headers: {
           ...formData.getHeaders(),
         },
-        timeout: 60000, // 60s timeout for audio processing
+        timeout: 300000, // 300s (5min) timeout to handle cold-starts and large model downloads
       });
 
       const data = response.data;
