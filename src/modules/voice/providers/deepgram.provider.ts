@@ -8,6 +8,14 @@ export class DeepgramProvider implements VoiceProvider {
   private readonly logger = new Logger(DeepgramProvider.name);
   private readonly apiKey: string;
 
+  public readonly name = 'Deepgram';
+  public readonly priority = 3;
+  public readonly isLocal = false;
+
+  isAvailable(): boolean {
+    return !!this.apiKey;
+  }
+
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('DEEPGRAM_API_KEY') || '';
   }

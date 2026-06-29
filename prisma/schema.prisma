@@ -1878,11 +1878,21 @@ model VoiceEntry {
   processingProvider      String? // e.g., "Faster-Whisper"
   durationSeconds         Float?
 
+  // Processing Metadata (Phase 1)
+  processingTimeMs      Int?
+  transcriptVersion     Int       @default(1)
+  languageConfidence    Float?
+  audioRetained         Boolean   @default(false)
+  audioDeletedAt        DateTime?
+  segments              Json?     // [{start, end, text}]
+
   // Intelligence Data
   sentimentScore Float?
   emotionData    Json? // Stores mood, triggers, riskLevel, and future voice biomarkers
+  audioBiomarkers Json? // Phase 2/3 reserved field for pitch, energy, etc.
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@index([userId, featureType])
   @@index([createdAt])

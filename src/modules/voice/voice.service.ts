@@ -1,10 +1,9 @@
 import { Injectable, Logger, Inject, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { FasterWhisperProvider } from './providers/faster-whisper.provider';
-import { WhisperApiProvider } from './providers/whisper-api.provider';
-import { DeepgramProvider } from './providers/deepgram.provider';
 import { VoiceTranscriptionResult } from './providers/voice-provider.interface';
+import { ProviderRegistry } from './providers/provider-registry';
 import { AiService } from '../ai/ai.service';
+import { SupabaseStorageService } from '../../common/services/supabase-storage.service';
 
 @Injectable()
 export class VoiceService {
@@ -12,10 +11,9 @@ export class VoiceService {
   private readonly prisma = new PrismaClient();
 
   constructor(
-    private readonly fasterWhisper: FasterWhisperProvider,
-    private readonly whisperApi: WhisperApiProvider,
-    private readonly deepgramApi: DeepgramProvider,
+    private readonly providerRegistry: ProviderRegistry,
     private readonly aiService: AiService,
+    private readonly storageService: SupabaseStorageService,
   ) {}
 
   async transcribeAndStore(
@@ -28,47 +26,42 @@ export class VoiceService {
   ) {
     this.logger.log(`Processing voice entry for user ${userId}, feature: ${featureType}`);
     
-    let transcriptionResult: VoiceTranscriptionResult;
-
-    // 1. Fallback Chain: Faster-Whisper -> Whisper API -> Deepgram
-    try {
-      transcriptionResult = await this.fasterWhisper.transcribe(audioBuffer, mimeType, filename);
-    } catch (e1) {
-      this.logger.warn(`FasterWhisper failed, falling back to Whisper API: ${e1.message}`);
-      try {
-        transcriptionResult = await this.whisperApi.transcribe(audioBuffer, mimeType, filename);
-      } catch (e2) {
-        this.logger.warn(`Whisper API failed, falling back to Deepgram API: ${e2.message}`);
-        try {
-          transcriptionResult = await this.deepgramApi.transcribe(audioBuffer, mimeType, filename);
-        } catch (e3) {
-          this.logger.error(`All STT providers failed! Last error: ${e3.message}`);
-          throw new Error('All Voice transcription providers failed.');
-        }
-      }
-    }
+    // 1. Transcription via Dynamic Provider Registry
+    const transcriptionResult = await this.providerRegistry.transcribe(audioBuffer, mimeType, filename);
     
     // 2. Optionally upload audio to Supabase/S3 if retention is ON
     let audioUrl: string | null = null;
+    let audioRetained = false;
     if (retentionSetting) {
-      // TODO: Call Storage service to upload the M4A file
-      // audioUrl = await this.storageService.upload(audioBuffer, ...);
-      this.logger.log(`Audio retention is ON. Audio should be uploaded to storage.`);
-      audioUrl = `https://storage.placeholder.com/${filename}`;
+      try {
+        this.logger.log(`Audio retention is ON. Uploading to Supabase...`);
+        const folder = `user-voice/${userId}/${featureType.toLowerCase()}`;
+        const uniqueFilename = `${Date.now()}_${filename}`;
+        audioUrl = await this.storageService.uploadFile('user-uploads', folder, uniqueFilename, audioBuffer, mimeType);
+        audioRetained = true;
+      } catch (err) {
+        this.logger.error(`Failed to upload retained audio: ${err.message}`);
+        // We still save the transcription, but audio retention failed
+        audioRetained = false;
+      }
     }
 
-    // 3. Store in database
+    // 3. Store in database with Phase 1 metadata
     const voiceEntry = await this.prisma.voiceEntry.create({
       data: {
         userId,
         featureType,
         audioUrl,
+        audioRetained,
         originalLanguage: transcriptionResult.originalLanguage,
         originalTranscript: transcriptionResult.transcript,
         translatedEnglish: transcriptionResult.translatedEnglish,
         transcriptionConfidence: transcriptionResult.confidence,
+        languageConfidence: transcriptionResult.languageConfidence,
         durationSeconds: transcriptionResult.durationSeconds,
         processingProvider: transcriptionResult.provider,
+        processingTimeMs: transcriptionResult.processingTimeMs,
+        segments: transcriptionResult.segments,
       },
     });
 

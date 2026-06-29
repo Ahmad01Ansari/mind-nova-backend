@@ -9,6 +9,14 @@ export class WhisperApiProvider implements VoiceProvider {
   private readonly logger = new Logger(WhisperApiProvider.name);
   private readonly apiKey: string;
 
+  public readonly name = 'OpenAI-Whisper';
+  public readonly priority = 4;
+  public readonly isLocal = false;
+
+  isAvailable(): boolean {
+    return !!this.apiKey;
+  }
+
   constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
   }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { VoiceProvider, VoiceTranscriptionResult } from './voice-provider.interface';
 import axios from 'axios';
 import FormData from 'form-data';
@@ -9,8 +10,28 @@ export class FasterWhisperProvider implements VoiceProvider {
   private readonly logger = new Logger(FasterWhisperProvider.name);
   private readonly aiServiceUrl: string;
 
+  public readonly name = 'Faster-Whisper';
+  public readonly priority = 1;
+  public readonly isLocal = true;
+
+  isAvailable(): boolean {
+    return !!this.aiServiceUrl;
+  }
+
   constructor(private readonly configService: ConfigService) {
     this.aiServiceUrl = this.configService.get<string>('AI_SERVICE_URL') || 'http://127.0.0.1:8000';
+  }
+
+  @Cron('*/14 * * * *') // Run every 14 minutes
+  async keepWarm() {
+    if (!this.isAvailable()) return;
+    try {
+      this.logger.debug(`Pinging AI service to pre-warm Whisper model...`);
+      const response = await axios.get(`${this.aiServiceUrl}/voice/warmup`, { timeout: 30000 });
+      this.logger.debug(`AI Warmup successful: ${response.data.loadTimeMs}ms`);
+    } catch (e) {
+      this.logger.warn(`AI Warmup ping failed: ${e.message}`);
+    }
   }
 
   async transcribe(
@@ -42,7 +63,9 @@ export class FasterWhisperProvider implements VoiceProvider {
         translatedEnglish: data.translatedEnglish,
         confidence: data.confidence,
         durationSeconds: data.durationSeconds,
-        provider: 'Faster-Whisper',
+        processingTimeMs: data.processingTimeMs,
+        segments: data.segments,
+        provider: this.name,
       };
     } catch (error) {
       if (error.response) {
