@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UploadedFile, UseInterceptors, UseGuards, BadRequestException, Request } from '@nestjs/common';
+import { Controller, Post, Body, UploadedFile, UseInterceptors, UseGuards, BadRequestException, Request, Delete, Param } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { VoiceService } from './voice.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -54,5 +54,19 @@ export class VoiceController {
       throw new BadRequestException('voiceEntryId is required');
     }
     return await this.voiceService.analyzeEmotion(voiceEntryId);
+  }
+
+  @Delete('entries/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async deleteEntry(@Request() req: any, @Param('id') id: string) {
+    const userId = req.user.id;
+    return await this.voiceService.deleteEntry(userId, id);
+  }
+
+  @Delete('purge')
+  @UseGuards(AuthGuard('jwt'))
+  async purgeUserData(@Request() req: any) {
+    const userId = req.user.id;
+    return await this.voiceService.purgeUserData(userId);
   }
 }

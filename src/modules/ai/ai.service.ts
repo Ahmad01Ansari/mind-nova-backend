@@ -112,9 +112,24 @@ export class AiService {
     return { riskLevel: 'LOW', category: 'OTHER', suggestions: [] };
   }
 
-  async analyzeVoiceEmotion(transcript: string): Promise<{ mood: string; confidence: number; triggers: string[]; riskLevel: string }> {
+  async analyzeVoiceEmotion(transcript: string): Promise<any> {
     try {
-      const prompt = `Analyze this speech transcript for emotion and mood. Return ONLY a JSON object exactly matching this format: {"mood": "Happy|Sad|Anxious|Angry|Calm|Stressed", "confidence": 0.0-1.0, "triggers": ["trigger1", "trigger2"], "riskLevel": "LOW|MED|HIGH|SEVERE"}\n\nTranscript: "${transcript}"`;
+      const prompt = `Analyze this speech transcript for emotion, mood, and clinical indicators. 
+Return ONLY a JSON object exactly matching this format: 
+{
+  "mood": "Happy|Sad|Anxious|Angry|Calm|Stressed", 
+  "confidence": 0.0-1.0, 
+  "triggers": ["trigger1", "trigger2"], 
+  "riskLevel": "LOW|MED|HIGH|SEVERE",
+  "emotionalTone": "hopeful|defeated|agitated|etc",
+  "anxietyIndicators": ["racing thoughts", "catastrophizing"],
+  "burnoutIndicators": ["exhaustion", "depersonalization"],
+  "recoveryIndicators": ["gratitude", "future planning"],
+  "crisisKeywords": ["suicide", "harm"],
+  "therapeuticInsight": "One-line summary for therapist view"
+}
+
+Transcript: "${transcript}"`;
       const response = await this.tryGroq(prompt, "No context. Provide strict JSON.");
       if (response) {
         const match = response.text.match(/\{.*\}/s);
@@ -125,7 +140,18 @@ export class AiService {
     } catch (e) {
       this.logger.error(`Voice Emotion Analysis failed: ${e.message}`);
     }
-    return { mood: 'Calm', confidence: 0.5, triggers: [], riskLevel: 'LOW' };
+    return { 
+      mood: 'Calm', 
+      confidence: 0.5, 
+      triggers: [], 
+      riskLevel: 'LOW',
+      emotionalTone: 'neutral',
+      anxietyIndicators: [],
+      burnoutIndicators: [],
+      recoveryIndicators: [],
+      crisisKeywords: [],
+      therapeuticInsight: 'No significant emotional deviations detected.'
+    };
   }
 
   private getSystemPrompt(): string {

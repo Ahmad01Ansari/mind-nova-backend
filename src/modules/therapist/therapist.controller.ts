@@ -128,6 +128,18 @@ export class TherapistController {
     return this.therapistService.generatePostSessionNotes(appointmentId, body.rawNotes);
   }
 
+  @Post('ai/post-session-voice/:appointmentId')
+  async generatePostSessionNotesFromVoice(
+    @Param('appointmentId') appointmentId: string,
+    @Body() body: { voiceEntryId: string, therapistId: string }
+  ) {
+    return this.therapistService.generatePostSessionNotesFromVoice(
+      appointmentId,
+      body.voiceEntryId,
+      body.therapistId,
+    );
+  }
+
   // ─── Security & Privacy Endpoints ─────────────────────────────────
 
   @Delete('thread/:threadId')

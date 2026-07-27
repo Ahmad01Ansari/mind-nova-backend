@@ -139,6 +139,48 @@ export class MoodService {
     @InjectModel(MoodRecoveryLog.name)  private recoveryLogModel: Model<MoodRecoveryLogDocument>,
   ) {}
 
+  async createVoiceLog(userId: string, voiceEntryId: string) {
+    // 1. Fetch voice entry
+    const voiceEntry = await this.prisma.voiceEntry.findUnique({
+      where: { id: voiceEntryId },
+    });
+
+    if (!voiceEntry || voiceEntry.userId !== userId) {
+      throw new Error('Voice entry not found or unauthorized');
+    }
+
+    if (!voiceEntry.emotionData) {
+      throw new Error('Voice entry has no emotion data analyzed yet');
+    }
+
+    const aiData = voiceEntry.emotionData as any;
+    const moodName = aiData.mood || 'Calm';
+    
+    // Map AI mood to intensity and category
+    let category = 'neutral';
+    let intensity = 'moderate';
+    
+    const positiveMoods = ['Happy', 'Joyful', 'Excited', 'Calm'];
+    const negativeMoods = ['Sad', 'Anxious', 'Angry', 'Stressed'];
+    
+    if (positiveMoods.includes(moodName)) category = 'positive';
+    if (negativeMoods.includes(moodName)) category = 'negative';
+    
+    if (aiData.riskLevel === 'HIGH' || aiData.riskLevel === 'SEVERE') {
+      category = 'critical';
+      intensity = 'extreme';
+    }
+
+    // Reuse intelligent logging logic
+    return this.logIntelligent(userId, {
+      mood: moodName,
+      intensity,
+      category,
+      tags: aiData.triggers || [],
+      answers: [{ questionId: 'voice_transcript', answer: voiceEntry.originalTranscript }],
+    });
+  }
+
   async createLog(userId: string, dto: any) {
     let isCrisis = false;
     const notesLower = (dto.notes || '').toLowerCase();

@@ -1022,6 +1022,19 @@ export class TherapistService {
     }
   }
 
+  async generatePostSessionNotesFromVoice(appointmentId: string, voiceEntryId: string, therapistId: string) {
+    const voiceEntry = await this.prisma.voiceEntry.findUnique({
+      where: { id: voiceEntryId },
+    });
+
+    if (!voiceEntry || voiceEntry.userId !== therapistId) {
+      throw new BadRequestException('Voice entry not found or unauthorized');
+    }
+
+    // Reuse the text-based generator with the dictated transcript
+    return this.generatePostSessionNotes(appointmentId, voiceEntry.originalTranscript);
+  }
+
   async generatePostSessionNotes(appointmentId: string, therapistNotes: string) {
     const aiServiceUrl = process.env.AI_SERVICE_URL || 'https://mind-nova-ai.onrender.com';
     let structuredNotes = '';

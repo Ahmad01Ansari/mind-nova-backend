@@ -21,6 +21,12 @@ export class MoodController {
     return this.moodService.logIntelligent(user.id, dto);
   }
 
+  @Post('voice-log')
+  createVoiceLog(@GetUser() user: User, @Body('voiceEntryId') voiceEntryId: string) {
+    if (!voiceEntryId) throw new Error('voiceEntryId is required');
+    return this.moodService.createVoiceLog(user.id, voiceEntryId);
+  }
+
   // ─── Context & Questions ────────────────────────────────────────────────────
 
   @Get('context-rules')
