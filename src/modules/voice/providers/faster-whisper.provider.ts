@@ -58,8 +58,8 @@ export class FasterWhisperProvider implements VoiceProvider {
       const data = response.data;
       
       return {
-        transcript: data.transcript || data.originalTranscript,
-        originalLanguage: data.originalLanguage || 'Unknown',
+        transcript: data.transcript ?? data.originalTranscript ?? "",
+        originalLanguage: data.originalLanguage ?? 'Unknown',
         translatedEnglish: data.translatedEnglish,
         confidence: data.confidence,
         durationSeconds: data.durationSeconds,

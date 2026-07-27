@@ -160,10 +160,12 @@ export class MoodService {
     let category = 'neutral';
     let intensity = 'moderate';
     
-    const positiveMoods = ['Happy', 'Joyful', 'Excited', 'Calm'];
-    const negativeMoods = ['Sad', 'Anxious', 'Angry', 'Stressed'];
+    const positiveMoods = ['Happy', 'Joyful', 'Excited', 'Calm', 'Grateful', 'Overjoyed'];
+    const neutralMoods = ['Neutral', 'Tired', 'Distracted', 'Numb'];
+    const negativeMoods = ['Sad', 'Anxious', 'Angry', 'Stressed', 'Lonely', 'Burned_Out'];
     
     if (positiveMoods.includes(moodName)) category = 'positive';
+    if (neutralMoods.includes(moodName)) category = 'neutral';
     if (negativeMoods.includes(moodName)) category = 'negative';
     
     if (aiData.riskLevel === 'HIGH' || aiData.riskLevel === 'SEVERE') {

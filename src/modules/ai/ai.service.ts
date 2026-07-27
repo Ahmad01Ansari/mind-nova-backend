@@ -117,7 +117,7 @@ export class AiService {
       const prompt = `Analyze this speech transcript for emotion, mood, and clinical indicators. 
 Return ONLY a JSON object exactly matching this format: 
 {
-  "mood": "Happy|Sad|Anxious|Angry|Calm|Stressed", 
+  "mood": "Happy|Calm|Neutral|Tired|Sad|Anxious|Angry|Stressed", 
   "confidence": 0.0-1.0, 
   "triggers": ["trigger1", "trigger2"], 
   "riskLevel": "LOW|MED|HIGH|SEVERE",
