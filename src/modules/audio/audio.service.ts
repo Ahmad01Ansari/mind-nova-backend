@@ -58,15 +58,14 @@ export class AudioService implements OnModuleInit {
     private readonly storage: SupabaseStorageService,
   ) {}
 
-  async onModuleInit() {
-    this.logger.log('Starting automatic audio synchronization...');
-    try {
-      await this.seedBucketMetadata('sleep-sounds');
-      await this.seedBucketMetadata('meditation-audio');
-      this.logger.log('Automatic audio synchronization complete.');
-    } catch (err) {
-      this.logger.error('Failed to auto-sync audio metadata:', err.message);
-    }
+  onModuleInit() {
+    this.logger.log('Starting automatic audio synchronization in background...');
+    Promise.all([
+      this.seedBucketMetadata('sleep-sounds'),
+      this.seedBucketMetadata('meditation-audio'),
+    ])
+      .then(() => this.logger.log('Automatic audio synchronization complete.'))
+      .catch((err) => this.logger.error('Failed to auto-sync audio metadata:', err.message));
   }
 
   private _resolveDynamicUrl(track: any) {

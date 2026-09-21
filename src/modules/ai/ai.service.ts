@@ -239,7 +239,7 @@ Transcript: "${transcript}"`;
       const response = await axios.post(
         'https://api.groq.com/openai/v1/chat/completions',
         {
-          model: 'llama-3.3-70b-versatile',
+          model: 'qwen/qwen3.8-27b',
           messages: [
             { role: 'system', content: this.getSystemPrompt() + "\n\n" + context },
             { role: 'user', content: prompt }
@@ -273,13 +273,13 @@ Transcript: "${transcript}"`;
       const response = await axios.post(
         'https://integrate.api.nvidia.com/v1/chat/completions',
         {
-          model: 'meta/llama-3.1-70b-instruct',
+          model: 'meta/llama-3.2-11b-vision-instruct',
           messages: [
             { role: 'system', content: this.getSystemPrompt() + "\n\n" + context },
             { role: 'user', content: prompt }
           ],
           temperature: 0.5,
-          max_tokens: 500,
+          max_tokens: 500
         },
         {
           headers: { Authorization: `Bearer ${apiKey}` },
