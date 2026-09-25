@@ -3,8 +3,10 @@ import { ReportsScheduler } from './reports.scheduler';
 import { AiReportsController } from './ai-reports.controller';
 import { AiInsightService } from './ai-insight.service';
 import { WeeklyReportsService } from './weekly-reports.service';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
+  imports: [AiModule],
   controllers: [AiReportsController],
   providers: [ReportsScheduler, WeeklyReportsService, AiInsightService],
   exports: [AiInsightService, WeeklyReportsService],

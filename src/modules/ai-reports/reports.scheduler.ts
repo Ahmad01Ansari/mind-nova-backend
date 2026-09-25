@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { WeeklyReportsService } from './weekly-reports.service';
+import axios from 'axios';
 
 @Injectable()
 export class ReportsScheduler {
@@ -11,6 +12,25 @@ export class ReportsScheduler {
     private prisma: PrismaService,
     private weeklyReportsService: WeeklyReportsService,
   ) {}
+
+  /**
+   * Pings the AI microservice every 10 minutes to prevent Render from spinning down due to idle.
+   */
+  @Cron('*/10 * * * *')
+  async keepAiServiceWarm() {
+    const aiServiceUrl = process.env.AI_SERVICE_URL;
+    if (!aiServiceUrl) return;
+    try {
+      this.logger.debug('Pinging AI microservice to prevent Render idle spin-down...');
+      await axios.get(`${aiServiceUrl}/health`, {
+        headers: { 'X-Bridge-Secret': process.env.FASTAPI_BRIDGE_SECRET || 'secure_internal_vpc_key_mindnova_9823' },
+        timeout: 25000,
+      });
+      this.logger.debug('AI service keep-warm ping successful');
+    } catch (e: any) {
+      this.logger.warn(`AI service keep-warm ping failed: ${e.message}`);
+    }
+  }
 
   /**
    * Runs every hour. Checks which users' local timezone = Sunday 8 PM.
